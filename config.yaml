@@ -1,0 +1,15 @@
+project:
+  name: natya
+  version: 0.1.0
+
+data:
+  dataset_id: Samarth0710/bharatanatyam-mudra-dataset
+  cache_dir: ./data
+
+training:
+  seed: 42
+  batch_size: 64
+
+wandb:
+  entity: null
+  project: natya
