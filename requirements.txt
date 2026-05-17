@@ -12,3 +12,5 @@ seaborn>=0.12.0
 onnx>=1.15.0
 onnxruntime>=1.16.0
 onnxscript>=0.1.0
+sentence-transformers>=2.5.0
+chromadb>=0.4.0
