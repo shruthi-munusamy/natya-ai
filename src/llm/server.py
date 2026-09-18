@@ -39,6 +39,17 @@ app.add_middleware(
 interpreter = ViniyogaInterpreter()
 
 
+@app.on_event("startup")
+def build_index_if_empty():
+    # The chroma index is a derived artifact (rebuilt from data/kb/viniyoga.json
+    # in a couple seconds), so it isn't committed to git. On a fresh deploy
+    # with no persistent disk (Render free tier), this guarantees retrieval
+    # works instead of silently returning zero results.
+    if interpreter.retriever.collection.count() == 0:
+        n = interpreter.retriever.build_index()
+        print(f"Built viniyoga index from scratch: {n} entries")
+
+
 class InterpretRequest(BaseModel):
     mudras: list[str]
     context: Optional[str] = None

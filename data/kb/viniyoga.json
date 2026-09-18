@@ -1,0 +1,594 @@
+{
+  "schema_version": "0.2",
+  "source": "Abhinaya Darpana of Nandikeshvara; AI-drafted, verified by domain expert (Bharatanatyam practitioner, 14+ years training)",
+  "notes": "Each entry contains canonical viniyogas (uses/meanings) for a mudra as documented in Abhinaya Darpana. Class names match the Samarth0710 dataset labels used by the trained classifier.",
+  "mudras": {
+    "Alapadmam": {
+      "type": "asamyukta",
+      "translation": "fully opened lotus",
+      "description": "All fingers spread apart and bent slightly, palm facing outward, resembling a fully bloomed lotus.",
+      "viniyogas": [
+        {"meaning": "full-blown lotus", "context": "Alapadmam held forward with palm facing the audience"},
+        {"meaning": "longing or wistful glance", "context": "Alapadmam held near the chest with a slow circular motion, indicating yearning"},
+        {"meaning": "full moon", "context": "Alapadmam held above the head"},
+        {"meaning": "the question 'whom?' or 'where?'", "context": "Alapadmam swept outward in a questioning gesture"},
+        {"meaning": "beauty", "context": "Alapadmam used to indicate praise of feminine beauty or grace"},
+        {"meaning": "garland", "context": "Two Alapadmams held together to depict a garland of flowers"},
+        {"meaning": "circular motion or movement", "context": "Alapadmam rotated to indicate spinning or churning"}
+      ],
+      "related_mudras": ["Padmakosha", "Mukulam"]
+    },
+    "Aralam": {
+      "type": "asamyukta",
+      "translation": "crooked or bent",
+      "description": "Index finger curled, other fingers extended with the thumb bent inward.",
+      "viniyogas": [
+        {"meaning": "drinking nectar", "context": "Aralam held near the mouth in an upward tilt"},
+        {"meaning": "drinking poison", "context": "Aralam near the mouth with a grimace, depicting reluctance"},
+        {"meaning": "applying perfume", "context": "Aralam moved near the neck or arms in a sprinkling motion"},
+        {"meaning": "courage or valor", "context": "Aralam held firmly to indicate bravery"}
+      ],
+      "related_mudras": ["Sikharam", "Mushti"]
+    },
+    "Ardhachandran": {
+      "type": "asamyukta",
+      "translation": "half moon",
+      "description": "Hand stretched with the thumb extended sideways, forming a crescent shape with the palm.",
+      "viniyogas": [
+        {"meaning": "crescent moon", "context": "Ardhachandran held above the head, depicting the eighth-day moon"},
+        {"meaning": "hand catching the neck or throat", "context": "Ardhachandran placed at the throat"},
+        {"meaning": "spear", "context": "Ardhachandran extended with a thrusting motion"},
+        {"meaning": "consecration of an image", "context": "Ardhachandran sweeping over an imagined deity"},
+        {"meaning": "anxiety or worry", "context": "Ardhachandran placed at the brow"},
+        {"meaning": "meditation or prayer", "context": "Ardhachandran held still near the chest"}
+      ],
+      "related_mudras": ["Chandrakala", "Pathaka"]
+    },
+    "Ardhapathaka": {
+      "type": "asamyukta",
+      "translation": "half flag",
+      "description": "Pathaka with the ring and little fingers bent, the rest extended.",
+      "viniyogas": [
+        {"meaning": "young sprouts or leaves", "context": "Ardhapathaka held upward to depict new growth"},
+        {"meaning": "wooden plank or board", "context": "Ardhapathaka held horizontally"},
+        {"meaning": "riverbank", "context": "Ardhapathaka held parallel to the ground"},
+        {"meaning": "the meaning 'both' or 'two things'", "context": "Two Ardhapathakas held together to signify duality"},
+        {"meaning": "knife", "context": "Ardhapathaka in a cutting motion"},
+        {"meaning": "banner or flag", "context": "Ardhapathaka held high to indicate a flag waving"}
+      ],
+      "related_mudras": ["Pathaka", "Tripathaka"]
+    },
+    "Bramaram": {
+      "type": "asamyukta",
+      "translation": "bee",
+      "description": "Thumb and middle finger pressed together with the index finger extended outward, other fingers slightly curled.",
+      "viniyogas": [
+        {"meaning": "bee", "context": "Bramaram moved in fluttering motion to depict a bee in flight"},
+        {"meaning": "parrot", "context": "Bramaram held near the mouth"},
+        {"meaning": "cuckoo bird", "context": "Bramaram with gentle motion suggesting birdsong"},
+        {"meaning": "taking a vow", "context": "Bramaram held firmly in front of the chest"},
+        {"meaning": "gathering or picking flowers", "context": "Bramaram in a plucking motion"},
+        {"meaning": "the expression 'in the heart'", "context": "Bramaram placed at the chest"}
+      ],
+      "related_mudras": ["Hamsasyam", "Mrigasirsha"]
+    },
+    "Chandrakala": {
+      "type": "asamyukta",
+      "translation": "crescent moon",
+      "description": "Pathaka with the thumb extended outward to form a crescent shape between thumb and index finger.",
+      "viniyogas": [
+        {"meaning": "crescent moon", "context": "Chandrakala held above the head"},
+        {"meaning": "face", "context": "Chandrakala framing the face"},
+        {"meaning": "forehead", "context": "Chandrakala held at the forehead"},
+        {"meaning": "stick or staff", "context": "Chandrakala held vertically as a slender object"},
+        {"meaning": "moonlight on water", "context": "Chandrakala moved gently to suggest reflection"}
+      ],
+      "related_mudras": ["Ardhachandran", "Mukulam"]
+    },
+    "Chaturam": {
+      "type": "asamyukta",
+      "translation": "square or four",
+      "description": "Thumb folded at the base of the ring finger, the other three fingers held closely together and slightly bent forming a square shape.",
+      "viniyogas": [
+        {"meaning": "musk", "context": "Chaturam held near the cheek or neck to depict applying musk"},
+        {"meaning": "sandalwood paste", "context": "Chaturam in a smearing or applying motion"},
+        {"meaning": "small amount of gold", "context": "Chaturam held delicately"},
+        {"meaning": "modesty", "context": "Chaturam held near the face with downcast eyes"},
+        {"meaning": "brilliance or glory", "context": "Chaturam moved outward in a radiant gesture"},
+        {"meaning": "drinking a liquid", "context": "Chaturam held near the mouth in a sipping motion"}
+      ],
+      "related_mudras": ["Mukulam", "Hamsasyam"]
+    },
+    "Hamsasyam": {
+      "type": "asamyukta",
+      "translation": "swan beak",
+      "description": "Thumb and forefinger touching at the tips, the other three fingers extended outward.",
+      "viniyogas": [
+        {"meaning": "tying garments or clothes", "context": "Hamsasyam in a pinching and tying motion near the waist"},
+        {"meaning": "applying perfume or oil", "context": "Hamsasyam moved over the limbs"},
+        {"meaning": "slow drizzle or fine rain", "context": "Hamsasyam moved downward gently with finger flutter"},
+        {"meaning": "holding a pearl or fine object", "context": "Hamsasyam pinching delicately"},
+        {"meaning": "instruction or teaching", "context": "Hamsasyam held forward as if pointing emphatically"},
+        {"meaning": "drinking ablution water", "context": "Hamsasyam moved toward the mouth"}
+      ],
+      "related_mudras": ["Bramaram", "Mrigasirsha"]
+    },
+    "Kangulam": {
+      "type": "asamyukta",
+      "translation": "tail (of a cow)",
+      "description": "Ring finger bent and held down by the thumb, the rest of the fingers extended.",
+      "viniyogas": [
+        {"meaning": "lakucha fruit", "context": "Kangulam held with a delicate cupping gesture"},
+        {"meaning": "plum or small fruit", "context": "Kangulam held forward as if presenting fruit"},
+        {"meaning": "ringing a small bell", "context": "Kangulam moved with a small shaking motion"},
+        {"meaning": "breast of a young woman", "context": "Kangulam held near the chest"},
+        {"meaning": "eating small things", "context": "Kangulam near the mouth"}
+      ],
+      "related_mudras": ["Mukulam", "Padmakosha"]
+    },
+    "Kapith": {
+      "type": "asamyukta",
+      "translation": "wood-apple (kapittha fruit)",
+      "description": "Sikharam with the index finger curled over the thumb.",
+      "viniyogas": [
+        {"meaning": "the goddess Lakshmi", "context": "Kapith held forward with reverence"},
+        {"meaning": "the goddess Saraswati", "context": "Kapith held as if holding a stringed instrument"},
+        {"meaning": "churning", "context": "Kapith rotated in a circular motion"},
+        {"meaning": "holding cymbals", "context": "Two Kapiths struck together to indicate playing cymbals"},
+        {"meaning": "holding the end of a garment", "context": "Kapith pinching and lifting"},
+        {"meaning": "embracing the beloved", "context": "Kapith brought to the chest"},
+        {"meaning": "applying kohl or ointment", "context": "Kapith moved near the eye"}
+      ],
+      "related_mudras": ["Sikharam", "Mushti"]
+    },
+    "Katakamukha_1": {
+      "type": "asamyukta",
+      "translation": "opening in a bracelet (variant 1)",
+      "description": "Thumb, index finger, and middle finger meeting in a ring shape with the ring and little fingers extended upward. Variant 1 in the dataset reflects a specific finger configuration distinct from variants 2 and 3.",
+      "viniyogas": [
+        {"meaning": "plucking flowers", "context": "Katakamukha in a delicate picking motion near an imagined plant"},
+        {"meaning": "holding a pearl necklace or string", "context": "Katakamukha held forward as if displaying a strand"},
+        {"meaning": "drawing the string of a garland", "context": "Katakamukha pulling motion to tighten the thread"},
+        {"meaning": "holding a fragrant substance", "context": "Katakamukha near the nose"},
+        {"meaning": "speech or conversation", "context": "Katakamukha at chin level, indicating dialogue"},
+        {"meaning": "looking at oneself in a mirror", "context": "Katakamukha held as if holding a small mirror"}
+      ],
+      "related_mudras": ["Katakamukha_2", "Katakamukha_3", "Hamsasyam"]
+    },
+    "Katakamukha_2": {
+      "type": "asamyukta",
+      "translation": "opening in a bracelet (variant 2)",
+      "description": "Variant 2 of Katakamukha. Dataset-specific subclassification — the exact finger differentiation from variants 1 and 3 should be verified against teacher's curriculum or dataset documentation.",
+      "viniyogas": [
+        {"meaning": "plucking flowers", "context": "Katakamukha in a delicate picking motion"},
+        {"meaning": "holding a pearl necklace or string", "context": "Katakamukha held forward displaying a strand"},
+        {"meaning": "drawing the string of a garland", "context": "Katakamukha in a pulling motion"},
+        {"meaning": "holding a fragrant substance", "context": "Katakamukha near the nose"},
+        {"meaning": "speech or conversation", "context": "Katakamukha at chin level"},
+        {"meaning": "casting a glance", "context": "Katakamukha near the eye"}
+      ],
+      "related_mudras": ["Katakamukha_1", "Katakamukha_3", "Hamsasyam"]
+    },
+    "Katakamukha_3": {
+      "type": "asamyukta",
+      "translation": "opening in a bracelet (variant 3)",
+      "description": "Variant 3 of Katakamukha. Dataset-specific subclassification.",
+      "viniyogas": [
+        {"meaning": "plucking flowers", "context": "Katakamukha in a delicate picking motion"},
+        {"meaning": "holding a pearl necklace", "context": "Katakamukha held forward"},
+        {"meaning": "drawing the string of a garland", "context": "Katakamukha in a pulling motion"},
+        {"meaning": "speech or conversation", "context": "Katakamukha at chin level"},
+        {"meaning": "sniffing fragrance", "context": "Katakamukha near the nose"}
+      ],
+      "related_mudras": ["Katakamukha_1", "Katakamukha_2", "Hamsasyam"]
+    },
+    "Katrimukha": {
+      "type": "asamyukta",
+      "translation": "scissors face (variant of Kartarimukha)",
+      "description": "Index and middle fingers extended in a scissor shape with the other fingers folded.",
+      "viniyogas": [
+        {"meaning": "separation or parting", "context": "Katrimukha moved apart slowly to depict two people separating"},
+        {"meaning": "falling or dropping", "context": "Katrimukha lowered with a slow downward motion"},
+        {"meaning": "theft or stealing", "context": "Katrimukha in a quick snatching motion"},
+        {"meaning": "the corner of the eye", "context": "Katrimukha pointed near the outer eye"},
+        {"meaning": "death", "context": "Katrimukha held still and downcast"},
+        {"meaning": "lightning", "context": "Katrimukha in a quick zigzag motion"},
+        {"meaning": "plundering or defeat", "context": "Katrimukha in an aggressive sweeping motion"}
+      ],
+      "related_mudras": ["Suchi", "Trishulam"]
+    },
+    "Mayura": {
+      "type": "asamyukta",
+      "translation": "peacock",
+      "description": "Ring finger and thumb tips touch, the other fingers extended outward.",
+      "viniyogas": [
+        {"meaning": "peacock", "context": "Mayura held with arm curved to suggest a peacock's neck"},
+        {"meaning": "a creeper or vine", "context": "Mayura moved in a winding motion"},
+        {"meaning": "vomiting", "context": "Mayura moved away from the mouth in a forceful gesture"},
+        {"meaning": "the forehead", "context": "Mayura placed at the forehead"},
+        {"meaning": "a famous or renowned person", "context": "Mayura held in a presenting gesture"},
+        {"meaning": "wiping away tears", "context": "Mayura moved near the eye"},
+        {"meaning": "separating hair", "context": "Mayura moved through the hair in a parting motion"},
+        {"meaning": "ablution or sprinkling water", "context": "Mayura in a gentle flicking motion"}
+      ],
+      "related_mudras": ["Hamsasyam", "Tripathaka"]
+    },
+    "Mrigasirsha": {
+      "type": "asamyukta",
+      "translation": "deer head",
+      "description": "All fingers extended and held together, with the thumb and little finger pointing outward like a deer's antlers.",
+      "viniyogas": [
+        {"meaning": "deer", "context": "Mrigasirsha held at the forehead to suggest the deer's head"},
+        {"meaning": "sandal paste", "context": "Mrigasirsha moved in a circular motion as if applying paste"},
+        {"meaning": "kissing", "context": "Mrigasirsha brought near the face"},
+        {"meaning": "embarking on a journey", "context": "Mrigasirsha extended forward"},
+        {"meaning": "the number three", "context": "Mrigasirsha held with three fingers prominent"},
+        {"meaning": "calling the beloved", "context": "Mrigasirsha moved in a beckoning motion"},
+        {"meaning": "casting a glance", "context": "Mrigasirsha moved past the eye"}
+      ],
+      "related_mudras": ["Hamsasyam", "Bramaram"]
+    },
+    "Mukulam": {
+      "type": "asamyukta",
+      "translation": "bud",
+      "description": "All five fingertips brought together to form the shape of a flower bud.",
+      "viniyogas": [
+        {"meaning": "lotus bud", "context": "Mukulam held upward to depict an unopened lotus"},
+        {"meaning": "eating", "context": "Mukulam brought near the mouth"},
+        {"meaning": "holding a seal or stamp", "context": "Mukulam pressed downward"},
+        {"meaning": "offering or presenting", "context": "Mukulam extended forward in a giving gesture"},
+        {"meaning": "plantain flower", "context": "Mukulam held hanging downward to depict a banana flower"},
+        {"meaning": "salutation or worship", "context": "Mukulam held at the chest"}
+      ],
+      "related_mudras": ["Padmakosha", "Alapadmam"]
+    },
+    "Mushti": {
+      "type": "asamyukta",
+      "translation": "fist",
+      "description": "Four fingers folded over the palm with the thumb pressed over them.",
+      "viniyogas": [
+        {"meaning": "firmness or steadfastness", "context": "Mushti held tightly at the side or chest"},
+        {"meaning": "holding things", "context": "Mushti held forward as if gripping an object"},
+        {"meaning": "gripping the hair", "context": "Mushti placed at the top of the head"},
+        {"meaning": "wrestling", "context": "Two Mushtis held forward in combat stance"},
+        {"meaning": "hitting or striking", "context": "Mushti in a punching motion"},
+        {"meaning": "holding a weapon", "context": "Mushti held forward as if gripping a hilt"}
+      ],
+      "related_mudras": ["Kapith", "Sikharam"]
+    },
+    "Padmakosha": {
+      "type": "asamyukta",
+      "translation": "lotus cup or lotus bud",
+      "description": "All fingers slightly bent and separated, forming a cup-like shape, palm hollow.",
+      "viniyogas": [
+        {"meaning": "fruit", "context": "Padmakosha held forward as if presenting fruit"},
+        {"meaning": "breast", "context": "Padmakosha held near the chest"},
+        {"meaning": "a flowering bud about to open", "context": "Padmakosha held upward"},
+        {"meaning": "bell", "context": "Padmakosha held hanging downward"},
+        {"meaning": "a hollow vessel or bowl", "context": "Padmakosha cupped as if holding liquid"},
+        {"meaning": "a hill or mountain", "context": "Padmakosha held large and rounded"},
+        {"meaning": "eating", "context": "Padmakosha moved toward the mouth"},
+        {"meaning": "mango", "context": "Padmakosha cupped as if holding a mango"}
+      ],
+      "related_mudras": ["Mukulam", "Alapadmam"]
+    },
+    "Pathaka": {
+      "type": "asamyukta",
+      "translation": "flag",
+      "description": "All fingers extended and held together with the thumb bent across the palm.",
+      "viniyogas": [
+        {"meaning": "cloud", "context": "Pathaka held above the head with the arm extended, depicting gathering clouds"},
+        {"meaning": "forest", "context": "Two Pathakas held side by side with fingers slightly spread"},
+        {"meaning": "river", "context": "Pathaka swept horizontally to depict flowing water"},
+        {"meaning": "refusal or denial", "context": "Pathaka held vertically in front of the body, palm outward"},
+        {"meaning": "blessing", "context": "Pathaka held forward, palm visible, in a granting gesture"},
+        {"meaning": "moonlight", "context": "Pathaka held at an angle catching imagined moonlight"},
+        {"meaning": "horse", "context": "Pathaka in a galloping rhythmic motion"},
+        {"meaning": "wave", "context": "Pathaka rippled in a wave motion"},
+        {"meaning": "shield", "context": "Pathaka held flat in front of the body, protective"}
+      ],
+      "related_mudras": ["Tripathaka", "Ardhapathaka"]
+    },
+    "Sarpasirsha": {
+      "type": "asamyukta",
+      "translation": "snake hood",
+      "description": "Pathaka with the palm slightly curved inward, resembling the hood of a serpent.",
+      "viniyogas": [
+        {"meaning": "serpent", "context": "Sarpasirsha moved in a slithering motion"},
+        {"meaning": "sandal paste", "context": "Sarpasirsha used in a smearing motion on the body"},
+        {"meaning": "oblation or offering", "context": "Sarpasirsha cupped to pour an offering"},
+        {"meaning": "gentle wind or breeze", "context": "Sarpasirsha moved in a soft fanning motion"},
+        {"meaning": "fanning", "context": "Sarpasirsha moved back and forth gently"},
+        {"meaning": "sprinkling water", "context": "Sarpasirsha in a flicking motion"},
+        {"meaning": "feeding an elephant", "context": "Sarpasirsha extended forward with a giving motion"}
+      ],
+      "related_mudras": ["Pathaka", "Mrigasirsha"]
+    },
+    "Shukatundam": {
+      "type": "asamyukta",
+      "translation": "parrot's beak",
+      "description": "Pathaka with the index finger bent and the ring finger bent inward, resembling a curved beak.",
+      "viniyogas": [
+        {"meaning": "shooting an arrow", "context": "Shukatundam with a quick releasing motion forward"},
+        {"meaning": "throwing a spear", "context": "Shukatundam thrust forward sharply"},
+        {"meaning": "expression of a mystery or secret", "context": "Shukatundam held near the lips"},
+        {"meaning": "a ferocious or intense aspect", "context": "Shukatundam held forward with intensity"},
+        {"meaning": "recollection or remembering", "context": "Shukatundam held near the temple"}
+      ],
+      "related_mudras": ["Aralam", "Mrigasirsha"]
+    },
+    "Sikharam": {
+      "type": "asamyukta",
+      "translation": "peak or spire",
+      "description": "Fingers folded into a fist with the thumb extended upward.",
+      "viniyogas": [
+        {"meaning": "bow", "context": "Sikharam held as if drawing a bowstring"},
+        {"meaning": "pillar or column", "context": "Sikharam held firmly upright"},
+        {"meaning": "husband or lover", "context": "Sikharam pointed toward an absent person to indicate the beloved"},
+        {"meaning": "tooth", "context": "Sikharam placed near the mouth"},
+        {"meaning": "entering or going in", "context": "Sikharam moved forward through an imagined passage"},
+        {"meaning": "asking a question", "context": "Sikharam held forward inquisitively"},
+        {"meaning": "no or denial", "context": "Sikharam moved side to side"},
+        {"meaning": "recollection", "context": "Sikharam placed near the temple"}
+      ],
+      "related_mudras": ["Mushti", "Kapith"]
+    },
+    "Simhamukham": {
+      "type": "asamyukta",
+      "translation": "lion face",
+      "description": "Middle and ring fingers bent to touch the thumb tip, index and little finger extended outward.",
+      "viniyogas": [
+        {"meaning": "lion", "context": "Simhamukham held at the face to depict a lion's mouth"},
+        {"meaning": "hare or rabbit", "context": "Simhamukham held delicately to suggest small ears"},
+        {"meaning": "elephant", "context": "Simhamukham moved as a trunk waving"},
+        {"meaning": "garland", "context": "Two Simhamukhams held together as a garland"},
+        {"meaning": "kusha grass", "context": "Simhamukham held with fingers like blades of grass"},
+        {"meaning": "ascetic or sage", "context": "Simhamukham held in a meditative pose"},
+        {"meaning": "medicinal herbs", "context": "Simhamukham presented as offering herbs"}
+      ],
+      "related_mudras": ["Mrigasirsha", "Hamsasyam"]
+    },
+    "Suchi": {
+      "type": "asamyukta",
+      "translation": "needle",
+      "description": "Index finger extended upward with all other fingers folded into a fist.",
+      "viniyogas": [
+        {"meaning": "the number one", "context": "Suchi held forward to indicate singularity"},
+        {"meaning": "the world or universe", "context": "Suchi held high to indicate cosmic singularity"},
+        {"meaning": "Brahma", "context": "Suchi held above the head"},
+        {"meaning": "parasol or umbrella", "context": "Suchi held straight up over the head"},
+        {"meaning": "the sun", "context": "Suchi pointed upward"},
+        {"meaning": "city or town", "context": "Suchi pointed forward as if indicating a place"},
+        {"meaning": "the number hundred", "context": "Suchi held with emphasis to indicate many"},
+        {"meaning": "thread or yarn", "context": "Suchi held delicately as if threading"}
+      ],
+      "related_mudras": ["Katrimukha", "Trishulam"]
+    },
+    "Tamarachudam": {
+      "type": "asamyukta",
+      "translation": "cock's comb",
+      "description": "Fingers held in a peaked formation resembling the comb of a rooster.",
+      "viniyogas": [
+        {"meaning": "rooster or cock", "context": "Tamarachudam held at the head to depict a rooster's comb"},
+        {"meaning": "lotus stalk", "context": "Tamarachudam held vertically"},
+        {"meaning": "a stalk or stem of a plant", "context": "Tamarachudam held upright"}
+      ],
+      "related_mudras": ["Sikharam", "Tripathaka"]
+    },
+    "Tripathaka": {
+      "type": "asamyukta",
+      "translation": "three parts of a flag",
+      "description": "Pathaka with the ring finger bent (canonical bend is partial, approximately ninety degrees, not fully folded to the palm).",
+      "viniyogas": [
+        {"meaning": "crown", "context": "Tripathaka held above the head"},
+        {"meaning": "tree", "context": "Tripathaka held vertically with the arm extended upward"},
+        {"meaning": "thunderbolt or vajra", "context": "Tripathaka in a quick striking motion"},
+        {"meaning": "Indra (king of gods)", "context": "Tripathaka held with regal posture"},
+        {"meaning": "arrow", "context": "Tripathaka with the arm extended in a shooting motion"},
+        {"meaning": "ketaka flower", "context": "Tripathaka held delicately upward"},
+        {"meaning": "lamp", "context": "Tripathaka held upright with a flickering motion"},
+        {"meaning": "flame or fire", "context": "Tripathaka with slight finger flutter to depict flame"},
+        {"meaning": "dove or pigeon", "context": "Tripathaka in soft fluttering motion"}
+      ],
+      "related_mudras": ["Pathaka", "Ardhapathaka"]
+    },
+    "Trishulam": {
+      "type": "asamyukta",
+      "translation": "trident",
+      "description": "Thumb and little finger held together, with the index, middle, and ring fingers extended upward.",
+      "viniyogas": [
+        {"meaning": "trident (weapon of Shiva)", "context": "Trishulam held aloft"},
+        {"meaning": "bilva leaf (sacred to Shiva)", "context": "Trishulam held forward as if presenting a leaf"},
+        {"meaning": "the number three", "context": "Trishulam held to indicate triplicity"}
+      ],
+      "related_mudras": ["Suchi", "Katrimukha"]
+    },
+    "Anjali": {
+      "type": "samyukta",
+      "translation": "salutation or offering",
+      "description": "Two Pathakas joined palm to palm, fingers pointing upward.",
+      "viniyogas": [
+        {"meaning": "salutation to deities", "context": "Anjali held at the forehead"},
+        {"meaning": "salutation to teachers or elders", "context": "Anjali held at the face"},
+        {"meaning": "salutation to friends or equals", "context": "Anjali held at the chest"},
+        {"meaning": "salutation to parents or respected persons", "context": "Anjali held with a slight bow"}
+      ],
+      "related_mudras": ["Kapotham", "Pushpaputa"]
+    },
+    "Berunda": {
+      "type": "samyukta",
+      "translation": "pair of birds (often two-headed mythic bird)",
+      "description": "Two Kapithas with the wrists crossed, depicting two birds joined or facing each other.",
+      "viniyogas": [
+        {"meaning": "pair of birds", "context": "Berunda held forward to depict two birds together"},
+        {"meaning": "gandaberunda (the mythical two-headed bird)", "context": "Berunda held with dramatic emphasis"},
+        {"meaning": "couple or pair", "context": "Berunda held to indicate two-ness"}
+      ],
+      "related_mudras": ["Kartariswastika", "Swastikam"]
+    },
+    "Garuda": {
+      "type": "samyukta",
+      "translation": "eagle (Vishnu's mount)",
+      "description": "Two hands crossed at the wrists with thumbs interlocked, the rest of the fingers spread like wings.",
+      "viniyogas": [
+        {"meaning": "Garuda, the king of birds", "context": "Garuda held high with wings outspread"},
+        {"meaning": "Vishnu's mount", "context": "Garuda held to depict carrying a deity"},
+        {"meaning": "an eagle in flight", "context": "Garuda with sweeping arm motion"}
+      ],
+      "related_mudras": ["Berunda", "Swastikam"]
+    },
+    "Kapotham": {
+      "type": "samyukta",
+      "translation": "dove or pigeon",
+      "description": "Two hands joined at the base of the palms with the fingers slightly apart, resembling a dove with folded wings.",
+      "viniyogas": [
+        {"meaning": "humble reception of a guest", "context": "Kapotham held forward at the chest"},
+        {"meaning": "respectful conversation", "context": "Kapotham held near the chin"},
+        {"meaning": "salutation", "context": "Kapotham held at the forehead"},
+        {"meaning": "agreement or assent (yes)", "context": "Kapotham held with a slight nod"},
+        {"meaning": "addressing an elder respectfully", "context": "Kapotham held with reverence"}
+      ],
+      "related_mudras": ["Anjali", "Pushpaputa"]
+    },
+    "Karkatta": {
+      "type": "samyukta",
+      "translation": "crab",
+      "description": "Fingers of both hands interlocked with palms facing one another, forming a crab-like shape.",
+      "viniyogas": [
+        {"meaning": "the sacred thread ceremony (yajnopavita)", "context": "Karkatta moved diagonally across the body"},
+        {"meaning": "holding heavy weights", "context": "Karkatta held low with effort"},
+        {"meaning": "blowing a conch shell", "context": "Karkatta held near the mouth"},
+        {"meaning": "stretching the limbs", "context": "Karkatta moved outward expansively"},
+        {"meaning": "plural number or multitude", "context": "Karkatta held to indicate many things"},
+        {"meaning": "churning", "context": "Karkatta rotated in a circular motion"}
+      ],
+      "related_mudras": ["Kilaka", "Pasha"]
+    },
+    "Kartariswastika": {
+      "type": "samyukta",
+      "translation": "scissors cross",
+      "description": "Two Kartarimukhas with the wrists crossed.",
+      "viniyogas": [
+        {"meaning": "branches of trees", "context": "Kartariswastika held upward with arms spread"},
+        {"meaning": "top of a tree", "context": "Kartariswastika held high"},
+        {"meaning": "a forest canopy", "context": "Kartariswastika spread wide"}
+      ],
+      "related_mudras": ["Swastikam", "Katrimukha"]
+    },
+    "Katakavardhana": {
+      "type": "samyukta",
+      "translation": "increase of bracelet",
+      "description": "Two Katakamukhas with one resting on the other.",
+      "viniyogas": [
+        {"meaning": "consecration or coronation", "context": "Katakavardhana held forward in a blessing gesture"},
+        {"meaning": "bringing one's lover or beloved", "context": "Katakavardhana extended in a leading motion"},
+        {"meaning": "propitiation or appeasement", "context": "Katakavardhana held in a soothing gesture"},
+        {"meaning": "gentle pressing or embracing", "context": "Katakavardhana held softly at the chest"}
+      ],
+      "related_mudras": ["Kilaka", "Samputa"]
+    },
+    "Khatva": {
+      "type": "samyukta",
+      "translation": "bed or cot",
+      "description": "Two Chaturas held with one above the other in a rectangular formation.",
+      "viniyogas": [
+        {"meaning": "a bed or cot", "context": "Khatva held horizontally"},
+        {"meaning": "gambling or dice play", "context": "Khatva in a quick shaking motion"},
+        {"meaning": "a rectangular object", "context": "Khatva held firmly with palms outlined"}
+      ],
+      "related_mudras": ["Sakata", "Swastikam"]
+    },
+    "Kilaka": {
+      "type": "samyukta",
+      "translation": "bond or wedge",
+      "description": "Two Mrigasirshas joined at the little fingers, hooked together.",
+      "viniyogas": [
+        {"meaning": "bond of affection", "context": "Kilaka held at the chest"},
+        {"meaning": "addressing a dear friend", "context": "Kilaka held with warmth"},
+        {"meaning": "holding the chin gently", "context": "Kilaka brought near the face"},
+        {"meaning": "conversation with affection", "context": "Kilaka held in dialogue"}
+      ],
+      "related_mudras": ["Pasha", "Karkatta"]
+    },
+    "Nagabandha": {
+      "type": "samyukta",
+      "translation": "bond of snakes",
+      "description": "Two Sarpasirshas with the wrists crossed, depicting intertwined serpents.",
+      "viniyogas": [
+        {"meaning": "two serpents intertwined", "context": "Nagabandha held forward in a winding motion"},
+        {"meaning": "a binding or knot", "context": "Nagabandha held firmly to suggest entanglement"}
+      ],
+      "related_mudras": ["Pasha", "Swastikam"]
+    },
+    "Pasha": {
+      "type": "samyukta",
+      "translation": "noose or chain",
+      "description": "Index fingers of both hands interlocked, the other fingers folded.",
+      "viniyogas": [
+        {"meaning": "a chain or link", "context": "Pasha held forward to depict binding"},
+        {"meaning": "a noose", "context": "Pasha moved in a tightening motion"},
+        {"meaning": "conflict or struggle", "context": "Pasha held with tension"},
+        {"meaning": "a road or path", "context": "Pasha held in a stretched horizontal line"}
+      ],
+      "related_mudras": ["Kilaka", "Karkatta"]
+    },
+    "Pushpaputa": {
+      "type": "samyukta",
+      "translation": "casket of flowers",
+      "description": "Two Sarpasirshas joined at the little fingers with palms cupped, forming a vessel shape.",
+      "viniyogas": [
+        {"meaning": "receiving with both palms", "context": "Pushpaputa held forward cupped"},
+        {"meaning": "holding flowers", "context": "Pushpaputa held with reverence"},
+        {"meaning": "offering flowers to a deity", "context": "Pushpaputa raised in worship"},
+        {"meaning": "holding or carrying water", "context": "Pushpaputa cupped to hold liquid"}
+      ],
+      "related_mudras": ["Anjali", "Kapotham"]
+    },
+    "Sakata": {
+      "type": "samyukta",
+      "translation": "cart or chariot",
+      "description": "Two Shikharams held side by side with thumbs raised, depicting wheels or a cart.",
+      "viniyogas": [
+        {"meaning": "a chariot or cart", "context": "Sakata held forward to depict moving wheels"},
+        {"meaning": "a vehicle", "context": "Sakata in a rolling motion"},
+        {"meaning": "the demon Sakatasura", "context": "Sakata held with menacing intent"}
+      ],
+      "related_mudras": ["Khatva", "Swastikam"]
+    },
+    "Samputa": {
+      "type": "samyukta",
+      "translation": "casket or covered vessel",
+      "description": "Two Chaturas held one over the other with palms facing inward, forming a covered box shape.",
+      "viniyogas": [
+        {"meaning": "a casket or covered box", "context": "Samputa held forward with closed palms"},
+        {"meaning": "presenting offerings", "context": "Samputa extended in a giving gesture"},
+        {"meaning": "hiding or concealing something", "context": "Samputa held closed against the body"}
+      ],
+      "related_mudras": ["Khatva", "Katakavardhana"]
+    },
+    "Shanka": {
+      "type": "samyukta",
+      "translation": "conch shell",
+      "description": "Thumb of one hand encircled by the thumb and fingers of the other, depicting a conch.",
+      "viniyogas": [
+        {"meaning": "a conch shell", "context": "Shanka held near the mouth as if blowing"},
+        {"meaning": "ritual ablution", "context": "Shanka held forward with reverence"},
+        {"meaning": "a sacred sound or invocation", "context": "Shanka raised high"}
+      ],
+      "related_mudras": ["Karkatta", "Pushpaputa"]
+    },
+    "Swastikam": {
+      "type": "samyukta",
+      "translation": "cross or auspicious sign",
+      "description": "Two Pathakas with the wrists crossed.",
+      "viniyogas": [
+        {"meaning": "praising or extolling", "context": "Swastikam held forward in a praising gesture"},
+        {"meaning": "a group or multitude", "context": "Swastikam held wide to indicate many"},
+        {"meaning": "a large vehicle", "context": "Swastikam in a sweeping motion"},
+        {"meaning": "a fence or barrier", "context": "Swastikam held firmly horizontal"},
+        {"meaning": "the banks of a river", "context": "Swastikam held parallel to the ground"}
+      ],
+      "related_mudras": ["Kartariswastika", "Berunda"]
+    }
+  }
+}

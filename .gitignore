@@ -1,5 +1,8 @@
 venv/
-data/
+data/*
+!data/kb/
+data/kb/*
+!data/kb/viniyoga.json
 *.pyc
 __pycache__/
 .ipynb_checkpoints/

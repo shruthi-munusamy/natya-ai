@@ -1,0 +1,11 @@
+# Minimal deps to run src/llm/server.py — used for the Render deploy.
+# The full requirements.txt also pulls in torch, mediapipe, opencv, etc.
+# for the training pipeline, none of which the deployed API needs; keeping
+# this separate keeps Render's free-tier build fast and the image small.
+fastapi>=0.110.0
+uvicorn>=0.27.0
+sse-starlette>=2.0.0
+groq>=0.11.0
+python-dotenv>=1.0.0
+chromadb>=0.4.0
+sentence-transformers>=2.5.0

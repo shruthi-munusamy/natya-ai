@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: natya-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements-server.txt
+    startCommand: uvicorn src.llm.server:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.15
+      - key: GROQ_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://natya-ai.vercel.app
