@@ -225,6 +225,7 @@ let stableLabel = null;
 let stableSince = 0;
 let lastInterpretedKey = null;
 let currentAbortController = null;
+let activeMudra = null; // mudra the panel currently reflects (loading or streamed text)
 
 function setInterpretationPlaceholder() {
   interpretEl.innerHTML = '<span class="placeholder">Hold a mudra steady to see its interpretation</span>';
@@ -239,6 +240,18 @@ function resetInterpretation() {
   if (currentAbortController) currentAbortController.abort();
   stableLabel = null;
   lastInterpretedKey = null;
+  activeMudra = null;
+  setInterpretationPlaceholder();
+}
+
+// Clears/aborts whatever's currently shown without touching stability
+// tracking — used when the top-1 mudra changes but hasn't been stable long
+// enough yet to start a new interpretation. Keeps stale text from a
+// previous mudra on screen while a new one is still being recognized.
+function clearActiveInterpretation() {
+  if (currentAbortController) currentAbortController.abort();
+  activeMudra = null;
+  lastInterpretedKey = null;
   setInterpretationPlaceholder();
 }
 
@@ -251,6 +264,7 @@ async function maybeInterpret(mudras, context) {
   const key = `${mudras.join(",")}|${context || ""}`;
   if (key === lastInterpretedKey) return;
   lastInterpretedKey = key;
+  activeMudra = mudras[0];
 
   if (currentAbortController) currentAbortController.abort();
   const controller = new AbortController();
@@ -306,13 +320,18 @@ async function maybeInterpret(mudras, context) {
 
 function updateInterpretationState(pred, context) {
   if (!pred) {
-    if (stableLabel !== null) resetInterpretation();
+    if (stableLabel !== null || activeMudra !== null) resetInterpretation();
     return;
   }
   if (pred.name !== stableLabel) {
     stableLabel = pred.name;
     stableSince = performance.now();
-    return;
+  }
+  // The displayed/streaming interpretation belongs to a mudra we're no
+  // longer predicting — clear it right away instead of leaving stale text
+  // up until the new mudra earns its own interpretation a second later.
+  if (activeMudra !== null && activeMudra !== pred.name) {
+    clearActiveInterpretation();
   }
   const stableFor = performance.now() - stableSince;
   if (stableFor >= STABLE_MS && pred.conf > CONFIDENCE_THRESHOLD) {
