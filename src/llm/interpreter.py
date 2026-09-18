@@ -51,6 +51,16 @@ Your job:
 Tone: warm and informative, like a knowledgeable teacher. Avoid academic jargon.
 """
 
+# Used only by the no-RAG arm of the faithfulness eval (scripts/eval_llm.py)
+# to measure what the model does with no retrieved grounding at all — i.e.
+# to quantify the value RAG actually adds, not to ship in the app.
+NO_RAG_SYSTEM_PROMPT = """You are a Bharatanatyam interpreter helping a dancer understand the viniyoga (traditional meaning) of detected mudras.
+
+You will receive one or more detected mudras and optional context about hand position or body posture. Using your own knowledge of Bharatanatyam and the Abhinaya Darpana, interpret what the dancer is most likely expressing.
+
+Be concise: 2-3 sentences maximum. Tone: warm and informative, like a knowledgeable teacher.
+"""
+
 
 class ViniyogaInterpreter:
     def __init__(self):
@@ -99,6 +109,34 @@ What is the dancer most likely expressing?"""
             max_tokens=300,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_msg},
+            ],
+            stream=True,
+        )
+        async for chunk in stream:
+            text = chunk.choices[0].delta.content
+            if text:
+                yield text
+
+    async def interpret_stream_no_rag(
+        self,
+        mudras: list[str],
+        context: Optional[str] = None,
+    ) -> AsyncIterator[str]:
+        """Same task, no retrieval — the model answers from parametric
+        knowledge alone. Exists only to measure the RAG grounding effect
+        in scripts/eval_llm.py; the app always uses interpret_stream."""
+        ctx_line = f"\nContext: {context}" if context else ""
+        mudras_line = ", ".join(mudras)
+        user_msg = f"""Detected mudra(s): {mudras_line}{ctx_line}
+
+What is the dancer most likely expressing?"""
+
+        stream = await self.client.chat.completions.create(
+            model=LLM_MODEL,
+            max_tokens=300,
+            messages=[
+                {"role": "system", "content": NO_RAG_SYSTEM_PROMPT},
                 {"role": "user", "content": user_msg},
             ],
             stream=True,

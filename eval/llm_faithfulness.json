@@ -1,0 +1,363 @@
+{
+  "methodology": "Lexical word-overlap heuristics against canonical KB viniyoga meanings, not semantic entailment. Directional signal for comparing RAG vs no-RAG under an identical rubric; inspect 'cases' transcripts for ground truth on individual examples.",
+  "model": "src.llm.interpreter",
+  "n_cases": 20,
+  "summary": {
+    "rag": {
+      "grounded_rate": 1.0,
+      "hallucination_rate": 0.0,
+      "contextual_accuracy": 1.0,
+      "n_cases": 20,
+      "n_contextual_cases": 10
+    },
+    "no_rag": {
+      "grounded_rate": 0.35,
+      "hallucination_rate": 0.05,
+      "contextual_accuracy": 0.3,
+      "n_cases": 20,
+      "n_contextual_cases": 10
+    }
+  },
+  "cases": [
+    {
+      "mudra": "Pathaka",
+      "context": "Pathaka held above the head with the arm extended, depicting gathering clouds",
+      "expected_meaning": "cloud",
+      "rag": {
+        "text": "The dancer is most likely invoking the **Pathaka\u202f\u2013\u202fcloud** viniyoga, since the hand is held above the head with the arm extended to suggest gathering clouds. In this position the gesture traditionally symbolizes the onset of rain or a stormy atmosphere. Other Pathaka meanings (refusal, shield, moonlight, horse, forest) are less fitting given the described placement.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": true
+      },
+      "no_rag": {
+        "text": "The dancer is using the Pathaka mudr\u0101, with the palm opened like a basket, raised high to suggest the sky\u2019s \u201ccup\u201d collecting clouds. This gesture traditionally conveys the gathering of clouds before a rain\u2011storm, often evoking the promise of monsoon or a divine blessing of water.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": true
+      }
+    },
+    {
+      "mudra": "Pathaka",
+      "context": null,
+      "expected_meaning": null,
+      "rag": {
+        "text": "With only the Pathaka hand shape and no additional cues, the dancer could be conveying any of its traditional meanings\u2014refusal or denial, the galloping of a horse, gathering clouds, the flow of a river, a protective shield, or a forest. Since the hand\u2019s position or movement isn\u2019t specified, these six viniyogas remain equally plausible interpretations.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": null
+      },
+      "no_rag": {
+        "text": "The Pathaka (flat hand with fingers together and thumb extended) is commonly used to suggest a vessel or offering\u2014so the dancer may be portraying the act of holding a bowl, leaf, or spoon, or symbolically \u201creceiving\u201d or \u201cbestowing\u201d something sacred. It can also evoke the shape of a mountain, a crown, or a temple, indicating reverence, protection, or the presence of a divine space. In short, the performer is likely expressing a gesture of offering, containment, or reverent presence.",
+        "grounded": false,
+        "hallucinated": false,
+        "contextual_correct": null
+      }
+    },
+    {
+      "mudra": "Alapadmam",
+      "context": "Alapadmam held forward with palm facing the audience",
+      "expected_meaning": "full-blown lotus",
+      "rag": {
+        "text": "The dancer is most likely invoking the **Alapadmam** viniyoga of the *full\u2011blown lotus*\u2014the gesture held forward with the palm facing the audience. This mudra traditionally conveys the opening of a lotus, symbolizing purity, blossoming beauty, and a gracious offering of the divine. (If the intention were to highlight feminine grace, the \u201cbeauty\u201d viniyoga could also apply, but the forward\u2011facing position points most directly to the lotus meaning.)",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": true
+      },
+      "no_rag": {
+        "text": "The forward\u2011facing Alapadm\u0103\u202f\u2014\u202fthe \u201copening lotus\u201d \u2013 is used to convey a blossoming, graceful beauty, often as a reverent offering or greeting to a deity or the audience. With the palm toward the viewers, the dancer is likely expressing the pure, divine charm of a lotus in full bloom, inviting admiration and devotion.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": true
+      }
+    },
+    {
+      "mudra": "Alapadmam",
+      "context": null,
+      "expected_meaning": null,
+      "rag": {
+        "text": "Because only the Alapadmam mudr\u0101 is detected and no further context (hand height, motion, or pairing) is given, several traditional meanings are all possible. It could be expressing **Alapadmam\u202f\u2014\u202flonging or a wistful glance**, **Alapadmam\u202f\u2014\u202fpraise of feminine beauty**, a **circular, churning movement**, the image of a **full\u2011blown lotus**, the **full\u2011moon gesture**, or even a **garland of flowers** when two are used together. Without additional cues, any of these viniyogas could be intended.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": null
+      },
+      "no_rag": {
+        "text": "Alapadmam\u202f\u2014\u202fthe \u201copen\u2011lotus\u201d hand, with the fingers spread like a blossoming flower. It is used to convey the exquisite beauty and purity of a lotus, often invoking a divine or celestial presence; the dancer may be offering devotion to a deity, describing a fragrant bloom, or expressing graceful, loving admiration.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": null
+      }
+    },
+    {
+      "mudra": "Mushti",
+      "context": "Mushti held tightly at the side or chest",
+      "expected_meaning": "firmness or steadfastness",
+      "rag": {
+        "text": "The dancer is most likely conveying **firmness or steadfastness** \u2013 the classic \u201cMushti\u202f(held tightly at the side or chest)\u201d viniyoga that signifies resolute strength and unwavering resolve. This gesture can evoke a sense of inner determination or a firm hold on one\u2019s purpose.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": true
+      },
+      "no_rag": {
+        "text": "A tightly\u2011clenched fist held at the side or against the chest",
+        "grounded": false,
+        "hallucinated": false,
+        "contextual_correct": false
+      }
+    },
+    {
+      "mudra": "Mushti",
+      "context": null,
+      "expected_meaning": null,
+      "rag": {
+        "text": "With only the Mushti gesture and no further context, the dancer could be conveying any of its traditional meanings\u2014gripping the hair at the crown, showing firmness or steadfastness at the side or chest, a striking or punching motion, holding an object or weapon, or even a wrestling stance. Since the posture and surrounding action are unknown, all these Mushti\u202fviniyogas remain equally plausible.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": null
+      },
+      "no_rag": {
+        "text": "The closed\u2011fist **Mushti** mudra usually conveys power, grasping or a fierce intent\u2014think of a warrior seizing a weapon, a deity displaying strength, or a character expressing anger or determination. In a dance phrase it often marks a moment of conflict, a decisive action, or the assertion of inner resolve.",
+        "grounded": false,
+        "hallucinated": false,
+        "contextual_correct": null
+      }
+    },
+    {
+      "mudra": "Tripathaka",
+      "context": "Tripathaka held above the head",
+      "expected_meaning": "crown",
+      "rag": {
+        "text": "The dancer is most likely invoking the **crown** meaning of Tripathaka, since the hand is held above the head \u2013 the classic \u201ccrown\u201d (Tripathaka) position. This gesture conveys a sense of divinity, sovereignty or spiritual elevation, inviting the audience to perceive the dancer as embodying a royal or celestial aura.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": true
+      },
+      "no_rag": {
+        "text": "Holding the Tripathaka\u202f\u2014\u202fthe three\u2011finger mudr\u0101\u202f\u2014\u202fhigh above the head is the classic \u201cprayer\u201d gesture in Bharatanatyam. It conveys reverence and a supplication to the divine, often used to invoke a deity or to offer a blessing. In this context the dancer is likely expressing devotion or a solemn invocation.",
+        "grounded": false,
+        "hallucinated": false,
+        "contextual_correct": false
+      }
+    },
+    {
+      "mudra": "Tripathaka",
+      "context": null,
+      "expected_meaning": null,
+      "rag": {
+        "text": "The Tripathaka can convey several meanings, so the dancer may be expressing any of the following\u202f: an arrow\u2011like thrust (the \u201carrow\u201d viniyoga), a regal, divine gesture (the \u201cIndra\u201d or \u201ccrown\u201d viniyogas), a delicate upward offering (the \u201cketaka\u2011flower\u201d or \u201ctree\u201d forms), or a swift, powerful strike (the \u201cthunderbolt/vajra\u201d viniyoga). Because the context isn\u2019t specified, all of these interpretations are equally plausible.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": null
+      },
+      "no_rag": {
+        "text": "The Tripathaka mudra, with the thumb, index and middle fingers together and the ring\u2011 and little\u2011fingers extended, signals \u201cthree\u2011fold.\u201d In Bharatanatyam it is used to evoke the three worlds (earth, atmosphere, heaven), the three\u202fGunas or the trinity of creation\u2011preservation\u2011destruction\u2014essentially a reference to a divine or philosophical \u201ctriad",
+        "grounded": false,
+        "hallucinated": false,
+        "contextual_correct": null
+      }
+    },
+    {
+      "mudra": "Suchi",
+      "context": "Suchi held forward to indicate singularity",
+      "expected_meaning": "the number one",
+      "rag": {
+        "text": "The forward\u2011pointing Suchi most often denotes **the number one** (Suchi held forward to indicate singularity). It can equally be read as **pointing to a city or town** when the gesture is used to indicate a specific place. Both of these viniyogas fit the given hand position, so the dancer could be expressing either \u201cone\u201d or \u201ca location.\u201d",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": true
+      },
+      "no_rag": {
+        "text": "The dancer is likely indicating \u201cthe one\u201d or \u201csingular,\u201d pointing to the supreme, indivisible source\u2014often used to denote a single deity, the ultimate truth, or the idea of being alone and unique. Holding the Suchi forward emphasizes that focus and singularity in the narrative.",
+        "grounded": false,
+        "hallucinated": false,
+        "contextual_correct": false
+      }
+    },
+    {
+      "mudra": "Suchi",
+      "context": null,
+      "expected_meaning": null,
+      "rag": {
+        "text": "Without a cue about the hand\u2019s direction or height, the Suchi mudr\u0101 can convey several ideas. It may be pointing forward to indicate a city, a place, or the number\u202fone, or it could be raised upward to suggest the sun, the world/universe, or even Brahma. So, based on the information given, the dancer could be expressing any of these canonical meanings.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": null
+      },
+      "no_rag": {
+        "text": "The\u202fSuchi\u202fmudra\u2014index finger upright, other fingers folded\u2014is used to point to or single\u2011out one thing. The dancer is likely indicating a solitary object, person, or idea, or posing a gentle question such as \u201cwhat is this?\u201d or \u201cwhy?\u201d. It conveys focus on a single, specific element in the narrative.",
+        "grounded": false,
+        "hallucinated": false,
+        "contextual_correct": null
+      }
+    },
+    {
+      "mudra": "Mayura",
+      "context": "Mayura held with arm curved to suggest a peacock's neck",
+      "expected_meaning": "peacock",
+      "rag": {
+        "text": "With the Mayura hand curled like a peacock\u2019s neck, the dancer is most likely embodying **the peacock (Mayura\u202f\u2013\u202fpeacock)**, evoking its graceful, proud strut and dazzling plumage.\u202fOther Mayura meanings (forehead, famous person, tears, hair\u2011parting, vomiting) are possible, but the described arm curvature points directly to the peacock symbolism.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": true
+      },
+      "no_rag": {
+        "text": "The Mayura\u202fmudr\u0101, with the arm curved like a peacock\u2019s graceful neck, evokes the splendor and pride of the peacock\u2014symbolising beauty, elegance and the joyous, flirtatious spirit of courtship. In Bharatanatyam it is often used to portray a lover\u2019s admiration, the divine adornment of a deity (such as Krishna\u2019s feathered crown), or simply the vivid image of a peacock displaying its plumage.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": true
+      }
+    },
+    {
+      "mudra": "Mayura",
+      "context": null,
+      "expected_meaning": null,
+      "rag": {
+        "text": "The Mayura mudr\u0101 can convey several different ideas, and without additional cues it could be any of the following: presenting a celebrated person, wiping away tears, placing the hand at the forehead, indicating vomiting, mimicking a winding creeper, or gently sprinkling water. Each of these meanings corresponds to a distinct\u202fviniyoga\u202flisted in the *Abhinaya\u202fDarpana*. Thus, the dancer\u2019s intention remains open to any of these interpretations until more context (such as the hand\u2019s exact location or the surrounding movement) is known.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": null
+      },
+      "no_rag": {
+        "text": "The\u202fMayura\u202f(\u201cpeacock\u201d) mudra is used to evoke the elegance and proud splendor of a peacock\u2019s dance.\u202fIt often conveys a lover\u2019s admiration, a feeling of joyous beauty, or the graceful yearning of a deity in nature.\u202fThus the dancer is likely expressing refined, poetic longing or the radiant charm of a peacock\u2011like presence.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": null
+      }
+    },
+    {
+      "mudra": "Anjali",
+      "context": "Anjali held at the forehead",
+      "expected_meaning": "salutation to deities",
+      "rag": {
+        "text": "The dancer is most likely offering a **salutation to the deities**, as indicated by the Anjali mudra placed at the forehead \u2013 the viniyoga \u201cAnjali: salutation to deities (Anjali held at the forehead).\u201d This gesture conveys reverence and devotion in the performance.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": true
+      },
+      "no_rag": {
+        "text": "The dancer is offering a respectful salutation or prayer, directing reverence toward the divine or a revered figure. Holding\u202fAnjali\u202fat the forehead signals an invocation of purity and devotion\u2014often used to greet a deity, begin a composition, or convey deep gratitude.",
+        "grounded": false,
+        "hallucinated": false,
+        "contextual_correct": false
+      }
+    },
+    {
+      "mudra": "Anjali",
+      "context": null,
+      "expected_meaning": null,
+      "rag": {
+        "text": "The dancer is offering an\u202fAnjali\u202fsalutation, but without a cue about where the hands are placed we cannot tell which specific respect is being shown.\u202fAnjali\u202fheld at the forehead denotes a greeting to deities; at the face it honors teachers or elders; with a slight bow it is for parents or respected persons; and at the chest it greets friends or equals. Thus any of these four viniyogas are equally plausible in this moment.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": null
+      },
+      "no_rag": {
+        "text": "The **Anjali\u202fMudr\u0101** (hands pressed together at the heart) conveys reverence and a humble offering\u2014often used to greet a deity, a teacher, or a respected guest, or to express gratitude and prayer. In a dance sequence it signals a moment of devotion, surrender, or respectful salutation, inviting the audience to feel the dancer\u2019s inner reverence.",
+        "grounded": false,
+        "hallucinated": true,
+        "contextual_correct": null
+      }
+    },
+    {
+      "mudra": "Kapotham",
+      "context": "Kapotham held forward at the chest",
+      "expected_meaning": "humble reception of a guest",
+      "rag": {
+        "text": "The dancer is most likely portraying the **Kapotham\u202f\u2013\u202fhumble reception of a guest**, since the hand is held forward at the chest. This conveys a warm, welcoming gesture toward an arriving visitor.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": true
+      },
+      "no_rag": {
+        "text": "",
+        "grounded": false,
+        "hallucinated": false,
+        "contextual_correct": false
+      }
+    },
+    {
+      "mudra": "Kapotham",
+      "context": null,
+      "expected_meaning": null,
+      "rag": {
+        "text": "Without additional cues about the dancer\u2019s posture or where the hand is placed, the Kapotham could be signaling any of its traditional meanings\u2014humble reception of a guest, a respectful conversation, addressing an elder, a salutation, or an affirmative \u201cyes.\u201d Since the context does not favor one position over another, these several viniyogas are equally plausible.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": null
+      },
+      "no_rag": {
+        "text": "Kapotham (the \u201cpigeon\u201d mudr\u0101)",
+        "grounded": false,
+        "hallucinated": false,
+        "contextual_correct": null
+      }
+    },
+    {
+      "mudra": "Garuda",
+      "context": "Garuda held high with wings outspread",
+      "expected_meaning": "Garuda, the king of birds",
+      "rag": {
+        "text": "The dancer is most likely invoking **Garuda\u202f\u2013\u202fthe king of birds** (Garuda held high with wings outspread) or **Garuda\u202f\u2013\u202fan eagle in flight** (the same expansive wing pose). Both viniyogas fit the high\u2011raised, wing\u2011outspread gesture, so either image is a plausible expression.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": true
+      },
+      "no_rag": {
+        "text": "Holding the Garuda mudra high with the \u201cwings\u201d fully spread evokes the soaring, regal bird of the heavens. The dancer is most likely portraying Garuda\u2014the divine eagle that serves Vishnu\u2014or a heroic, sky\u2011borne figure, expressing majesty",
+        "grounded": false,
+        "hallucinated": false,
+        "contextual_correct": false
+      }
+    },
+    {
+      "mudra": "Garuda",
+      "context": null,
+      "expected_meaning": null,
+      "rag": {
+        "text": "The Garuda mudr\u0101 can convey several related ideas; without additional context the dancer may be evoking any of its traditional meanings. It could represent **Garuda, the king of birds**, with the arms held high and wings out\u2011spread; it might suggest **an eagle in flight**, using a sweeping arm motion; or it could symbolize **Garuda as Vishnu\u2019s mount**, held as if carrying a deity. All three viniyogas are equally plausible in this situation.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": null
+      },
+      "no_rag": {
+        "text": "The Garuda mudra, with the palms together and the fingers fanned like an out\u2011stretched bird\u2019s wings, evokes the soaring, heroic energy of the eagle\u2011king Garuda. It is most often used to depict valor, divine triumph or a lofty, soaring spirit\u2014think of a warrior\u2019s victorious moment or the arrival of a celestial messenger. In a dance, the performer is likely expressing courage, triumph and the uplifting, divine presence of Garuda.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": null
+      }
+    },
+    {
+      "mudra": "Shanka",
+      "context": "Shanka held near the mouth as if blowing",
+      "expected_meaning": "a conch shell",
+      "rag": {
+        "text": "The dancer is most likely invoking the **Shanka as a conch shell**, bringing the hand to the mouth and mimicking the blowing of the shell (the \u201cShanka\u202f\u2013\u202fa conch shell\u201d viniyoga). This gesture traditionally signals the sacred sounding of the conch to announce a ritual or summon the divine.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": true
+      },
+      "no_rag": {
+        "text": "The Shankha mudr\u0101 held at the mouth mimics the blowing of a conch, so the dancer is signaling the auspicious \u201cshankh\u2011dhvani\u201d \u2013 the divine call that marks the beginning of a ritual or the arrival of a deity (often Vishnu or a celestial being). It can also convey a celebratory proclamation, like announcing a war\u2011cry or the start of a festive event.",
+        "grounded": false,
+        "hallucinated": false,
+        "contextual_correct": false
+      }
+    },
+    {
+      "mudra": "Shanka",
+      "context": null,
+      "expected_meaning": null,
+      "rag": {
+        "text": "The Shanka mudr\u0101 can convey several traditional meanings, and without details of hand height or orientation all three are plausible. It may be an **invocatory \u201csacred sound\u201d** when the hand is raised high, a **ritual ablution gesture** when the hand is extended forward reverently, or a **symbolic conch\u2011shell** when brought to the mouth as if blowing. Since the context is absent, any of these viniyogas could be intended.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": null
+      },
+      "no_rag": {
+        "text": "The Shankha mudra\u2014fingers curved like the opening of a conch\u2014usually signals an auspicious invocation, the resonant \u201cshankha\u2011n\u0101da\u201d that summons the divine and marks the beginning of a sacred act. In Bharatanatyam it often conveys reverence to deities such as Shiva or Vishnu, or the proclamation of a holy proclamation, inviting the audience into a realm of devotion and celebration.",
+        "grounded": true,
+        "hallucinated": false,
+        "contextual_correct": null
+      }
+    }
+  ]
+}

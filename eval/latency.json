@@ -1,0 +1,33 @@
+{
+  "caveats": [
+    "Classifier numbers use onnxruntime's native CPU execution provider as a proxy for onnxruntime-web's WASM backend in the browser; WASM is typically slower.",
+    "End-to-end excludes the 1000ms stability debounce in app.js (STABLE_MS) \u2014 that's a deliberate UX choice, not pipeline cost.",
+    "LLM numbers reflect Groq free-tier capacity at run time, not a SLA."
+  ],
+  "classifier_inference_ms": {
+    "asamyukta_int8_onnx_cpu": {
+      "p50_ms": 0.17222948372364044,
+      "p95_ms": 0.5553116090595721,
+      "mean_ms": 0.23243979550898075,
+      "n": 200
+    },
+    "samyukta_int8_onnx_cpu": {
+      "p50_ms": 0.011417083442211151,
+      "p95_ms": 0.011875294148921967,
+      "mean_ms": 0.011499356478452682,
+      "n": 200
+    }
+  },
+  "llm_time_to_first_token_ms": {
+    "p50_ms": 678.9936255663633,
+    "p95_ms": 1567.1511601191012,
+    "mean_ms": 786.6744916886091,
+    "n": 10
+  },
+  "end_to_end_ms": {
+    "p50_ms": 679.165855050087,
+    "p95_ms": 1567.7064717281607,
+    "mean_ms": 786.9069314841181,
+    "note": "classifier (asamyukta, ONNX CPU proxy) + LLM TTFT; excludes the 1000ms stability debounce and browser-side WASM overhead"
+  }
+}
