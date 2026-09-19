@@ -36,11 +36,11 @@ N_LLM_TRIALS = 10
 OUT_PATH = Path("eval/latency.json")
 
 TEST_CASES = [
-    ("Pathaka", "arm raised above head"),
-    ("Alapadmam", None),
+    ("Pataka", "arm raised above head"),
+    ("Alapadma", None),
     ("Mushti", "hand near chest"),
     ("Anjali", "hand near face"),
-    ("Kapotham", None),
+    ("Kapotha", None),
 ]
 
 

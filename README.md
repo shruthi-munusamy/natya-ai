@@ -14,8 +14,8 @@ interpretation) and drop it here. -->
 A mudra (hand gesture) in Bharatanatyam is not just a shape — it's a symbol
 with a *viniyoga*, a traditional meaning documented in texts like the
 Abhinaya Darpana, and the same mudra can carry different meanings depending
-on where it's held and how it moves. Pathaka above the head is a cloud;
-Pathaka at the chest can be something else entirely. Recognizing the mudra
+on where it's held and how it moves. Pataka above the head is a cloud;
+Pataka at the chest can be something else entirely. Recognizing the mudra
 is a (comparatively) tractable classification problem. Recognizing *what it
 means in context*, faithfully and without inventing meanings that aren't
 canonical, is the harder and more interesting problem — and it's where a
@@ -82,6 +82,14 @@ samples.
 
 **Samyukta (16 classes, MLP)** — top-1 **99.54%**, top-3 **100.00%**, macro
 F1 **0.996**, on a held-out validation split of 654 samples.
+
+The tables below use the classifier's raw output labels, which follow the
+Samarth0710 dataset's spellings (e.g. "Pathaka", "Tripathaka"). The app maps
+these to standard Sanskrit transliteration ("Pataka", "Tripataka") for
+display and for KB/LLM lookups — see
+[`web/models/mudra_display_names.json`](web/models/mudra_display_names.json).
+The dataset spellings are kept here since that's what the model actually
+outputs and what the confusion matrices are indexed by.
 
 <details>
 <summary>Per-class F1 (asamyukta)</summary>
@@ -161,9 +169,13 @@ checking by hand, not just trusting the aggregate.
 
 | Metric | With RAG | Without RAG |
 |---|---|---|
-| Grounded in a canonical viniyoga | **100%** | 35% |
-| Hallucinated (claimed a non-canonical viniyoga) | **0%** | 5% |
-| Context-sensitive (top-mentioned meaning matches the context given) | **100%** | 30% |
+| Grounded in a canonical viniyoga | **95%** | 45% |
+| Hallucinated (claimed a non-canonical viniyoga) | **0%** | 10% |
+| Context-sensitive (top-mentioned meaning matches the context given) | **100%** | 20% |
+
+(One RAG case returned an empty response — a transient Groq API hiccup during
+that run, not a grounding failure — which is why grounded isn't 100%; see
+the transcript for that case in the JSON.)
 
 Regenerate with `python scripts/eval_llm.py` (requires `GROQ_API_KEY`).
 

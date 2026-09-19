@@ -114,11 +114,11 @@ def main():
 
     # Sanity probe
     print("\nProbe: 'Pataka' alone")
-    for hit in r.retrieve(["Pathaka"], k=3):
+    for hit in r.retrieve(["Pataka"], k=3):
         print(f"  - {hit['document']}  (dist={hit['distance']:.3f})")
 
     print("\nProbe: 'Pataka' with arm-raised context")
-    for hit in r.retrieve(["Pathaka"], context="arm raised above head", k=3):
+    for hit in r.retrieve(["Pataka"], context="arm raised above head", k=3):
         print(f"  - {hit['document']}  (dist={hit['distance']:.3f})")
 
 

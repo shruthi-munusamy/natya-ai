@@ -34,6 +34,17 @@ let poseLandmarker;
 let asamyuktaSession;
 let samyuktaSession;
 let classes;
+let mudraDisplayNames = {};
+
+// The classifier's raw output labels are fixed to the Samarth0710 dataset's
+// spellings (renaming them would mean retraining), but the KB and LLM use
+// standard Sanskrit transliteration — see web/models/mudra_display_names.json.
+// Translating right where predictions are produced means every downstream
+// consumer (display, stability tracking, the LLM request, dedup keys) just
+// uses pred.name and never has to know the raw label existed.
+function canonicalName(rawLabel) {
+  return mudraDisplayNames[rawLabel] || rawLabel;
+}
 
 // --- Landmark normalization (mirrors src/data/preprocess.py) ---
 
@@ -156,7 +167,7 @@ function drawHand(landmarks) {
 // --- Pose context extraction ---
 // Cheap, threshold-based rules over MediaPipe Pose landmarks (normalized
 // image coordinates, y=0 at top). These give the LLM body-position context
-// beyond the raw mudra name — "Pathaka near the chest" and "Pathaka raised
+// beyond the raw mudra name — "Pataka near the chest" and "Pataka raised
 // above the head" retrieve different viniyogas. Thresholds are hand-tuned
 // against a webcam framing where the torso fills most of the vertical
 // frame; they're heuristics, not biomechanical constants.
@@ -366,7 +377,7 @@ async function predict(handsList) {
     const logits = Array.from(r.logits.data);
     const probs = smoothProbs(softmax(logits), "asamyukta");
     const idx = probs.indexOf(Math.max(...probs));
-    return { name: classes.asamyukta[idx], conf: probs[idx], type: "asamyukta" };
+    return { name: canonicalName(classes.asamyukta[idx]), conf: probs[idx], type: "asamyukta" };
   }
   // two hands
   const x = normalizeTwoHands(handsList[0], handsList[1]);
@@ -375,7 +386,7 @@ async function predict(handsList) {
   const logits = Array.from(r.logits.data);
   const probs = smoothProbs(softmax(logits), "samyukta");
   const idx = probs.indexOf(Math.max(...probs));
-  return { name: classes.samyukta[idx], conf: probs[idx], type: "samyukta" };
+  return { name: canonicalName(classes.samyukta[idx]), conf: probs[idx], type: "samyukta" };
 }
 
 let lastVideoTime = -1;
@@ -454,6 +465,7 @@ async function main() {
   asamyuktaSession = await ort.InferenceSession.create("./models/asamyukta_int8.onnx");
   samyuktaSession = await ort.InferenceSession.create("./models/samyukta_int8.onnx");
   classes = await fetch("./models/classes.json").then(r => r.json());
+  mudraDisplayNames = await fetch("./models/mudra_display_names.json").then(r => r.json());
 
   statusEl.textContent = "Requesting camera…";
   const stream = await navigator.mediaDevices.getUserMedia({

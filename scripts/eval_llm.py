@@ -35,8 +35,8 @@ KB_PATH = "data/kb/viniyoga.json"
 OUT_PATH = Path("eval/llm_faithfulness.json")
 
 TEST_MUDRAS = [
-    "Pathaka", "Alapadmam", "Mushti", "Tripathaka", "Suchi", "Mayura",
-    "Anjali", "Kapotham", "Garuda", "Shanka",
+    "Pataka", "Alapadma", "Mushti", "Tripataka", "Suchi", "Mayura",
+    "Anjali", "Kapotha", "Garuda", "Shanka",
 ]
 
 STOPWORDS = {
@@ -111,12 +111,31 @@ def extract_claim_spans(output: str, mudra: str, context: str | None) -> list[st
     return spans
 
 
+def span_matches_meaning(span: str, meaning: str) -> bool:
+    """Looser, direction-flipped check for short bolded/quoted spans (often
+    a 1-3 word paraphrase of a longer canonical meaning, e.g. '**longing**'
+    for the KB meaning 'longing or wistful glance'). meaning_matches checks
+    whether the *meaning's* words mostly appear in a block of text, which
+    is right for the whole-output grounded check but too strict for a
+    short span that can't reproduce every word of the meaning it's citing —
+    so here we check the *span's* words against the meaning instead, with a
+    lower overlap bar."""
+    span_lower, meaning_lower = span.lower(), meaning.lower()
+    if span_lower in meaning_lower or meaning_lower in span_lower:
+        return True
+    words = {w for w in re.findall(r"[a-z]+", span_lower) if len(w) > 3 and w not in STOPWORDS}
+    if not words:
+        return False
+    hits = sum(1 for w in words if w in meaning_lower)
+    return (hits / len(words)) >= 0.5
+
+
 def is_hallucinated(output: str, mudra: str, context: str | None, meanings: list[str]) -> bool:
     spans = extract_claim_spans(output, mudra, context)
     if not spans:
         # No distinctly named claim to check against the KB — nothing to flag.
         return False
-    return any(not any(meaning_matches(span, m) for m in meanings) for span in spans)
+    return any(not any(span_matches_meaning(span, m) for m in meanings) for span in spans)
 
 
 async def run_case(interp, kb, mudra, context, expected_meaning):

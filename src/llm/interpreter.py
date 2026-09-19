@@ -150,9 +150,9 @@ What is the dancer most likely expressing?"""
 async def _demo():
     """CLI demo: interpret a fixed example."""
     interp = ViniyogaInterpreter()
-    print("Mudra: Pathaka | Context: arm raised above head\n")
+    print("Mudra: Pataka | Context: arm raised above head\n")
     async for chunk in interp.interpret_stream(
-        ["Pathaka"],
+        ["Pataka"],
         context="arm raised above head",
     ):
         print(chunk, end="", flush=True)
