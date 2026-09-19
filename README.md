@@ -259,19 +259,43 @@ conditions, similar subjects). They do not reflect what happens under
 distribution shift on a novel webcam, and that gap is worth stating plainly
 rather than hiding behind a 97-99% headline number:
 
-- **Tripathaka's ring-finger bend**: the dataset's Tripathaka samples use a
-  full ring-finger bend rather than the canonical half-bend. The model
-  learned the dataset's convention, not the canonical form — a labeling
-  convention limitation, not a model failure.
-- **Chandrakala ↔ Suchi, Katakamukha_1/2/3, Bramaram → Katakamukha**: these
-  are qualitative failure modes observed in live webcam use at certain hand
-  orientations. Notably, **none of these pairs show any confusion in the
-  held-out validation confusion matrix** (checked directly — zero
-  misclassifications between each pair). That gap is the point: the failure
-  mode is a distribution-shift problem (different lighting, hand size, skin
-  tone, camera angle than the training distribution), not something the
-  offline eval numbers would ever surface. A demo that only reports the
-  validation metrics would be quietly overclaiming.
+- **Partial-bend transitions aren't recognized until fully formed.** The
+  dataset only contains static, fully-formed poses — no transition frames —
+  so mudras that differ by degree of finger bend (Pataka → Tripataka as the
+  ring finger bends, Pataka ↔ Ardhapataka, Arala → Shukatunda) don't switch
+  labels until the gesture matches the dataset's convention for the target
+  class, not at the biomechanical halfway point a dancer would expect.
+  Tripataka specifically: the dataset's samples use a full ring-finger bend
+  rather than the canonical half-bend, so the model learned the dataset's
+  convention, not the canonical form.
+- **Chandrakala is effectively never recognized** — live testing showed it
+  classified as Suchi at 100% confidence consistently, not just
+  occasionally. **Bhramara → Katakamukha (originally traced to certain
+  thumb positions; live testing found it consistently misreads the index
+  finger's position specifically), Katakamukha_1 → Hamsasya, Shikara ↔
+  Kapita, Mrigasirsha → Katakamukha_2, and Chatura → Shukatunda** are
+  additional confusions found in live testing. In every case the
+  hand-landmark overlay rendered correctly on screen, confirming these are
+  classifier decision-boundary failures, not upstream MediaPipe detection
+  failures. Checked directly against the held-out validation confusion
+  matrix: all of these pairs show **zero** validation-set misclassifications
+  except Katakamukha_1 → Hamsasya, which has exactly **1 misclassification
+  out of 77** validation samples — a real but rare confusion offline,
+  clearly amplified under live distribution shift.
+  That gap is the point: the failure mode is distribution shift (this
+  developer's lighting, hand, and camera vs. the training distribution), not
+  something the offline eval numbers would ever surface. A demo that only
+  reports validation metrics would be quietly overclaiming. (Caveat: this
+  list comes from one qualitative testing session by one person on one
+  camera setup, not a systematic re-evaluation — treat it as a set of
+  confirmed failure examples, not an exhaustive or statistically
+  characterized error rate.)
+- **The model only knows the mudras it was trained on.** Showing it a real
+  Bharatanatyam mudra outside the Samarth0710 dataset's 28+16 classes (e.g.
+  Hamsapaksha) isn't a "misclassification" in any meaningful sense — a
+  closed-set classifier has no "none of the above" option and will always
+  report its nearest match among the classes it knows, regardless of how
+  little the input actually resembles that class.
 - **MediaPipe's two-hand detection rate**: only ~24% of the dataset's
   double-hand samples have both hands detected by MediaPipe at all — hand
   occlusion when hands are close together is precisely when samyuktas
