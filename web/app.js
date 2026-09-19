@@ -227,6 +227,12 @@ let lastInterpretedKey = null;
 let currentAbortController = null;
 let activeMudra = null; // mudra the panel currently reflects (loading or streamed text)
 
+// The interpretation panel is plain text, not markdown-rendered, so strip
+// the model's emphasis markers rather than showing literal asterisks.
+function stripMarkdown(text) {
+  return text.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*\*/g, "");
+}
+
 function setInterpretationPlaceholder() {
   interpretEl.innerHTML = '<span class="placeholder">Hold a mudra steady to see its interpretation</span>';
 }
@@ -272,6 +278,7 @@ async function maybeInterpret(mudras, context) {
 
   showInterpretationLoading();
   let first = true;
+  let raw = "";
   try {
     const res = await fetch(`${BACKEND_URL}/interpret/stream`, {
       method: "POST",
@@ -306,7 +313,13 @@ async function maybeInterpret(mudras, context) {
             interpretEl.textContent = "";
             first = false;
           }
-          interpretEl.textContent += data;
+          // The model formats emphasis as markdown (**bold**), but this
+          // panel renders plain text, not HTML — re-derive the display
+          // text from the full raw buffer each token rather than stripping
+          // per-chunk, since a "**" marker can land split across two
+          // separate stream chunks.
+          raw += data;
+          interpretEl.textContent = stripMarkdown(raw);
         }
       }
     }
