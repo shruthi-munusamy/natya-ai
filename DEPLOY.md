@@ -6,8 +6,11 @@ about 10 minutes.
 ## 1. Backend — Render
 
 The backend is `src/llm/server.py` (FastAPI + SSE), configured by `render.yaml`
-and `requirements-server.txt` (a slim dependency set — the training pipeline's
-torch/mediapipe/opencv deps aren't needed to serve the API).
+and `requirements-server.txt` (skips mediapipe/opencv/datasets — the training
+pipeline's deps, not needed to serve the API. Torch still gets pulled in
+transitively via sentence-transformers, ~560MB of a ~1.3GB install — that's
+sentence-transformers' actual runtime need, not training-pipeline bloat
+sneaking back in. Verified in a clean venv; see requirements-server.txt).
 
 1. Go to [render.com](https://render.com) and sign in / sign up (GitHub OAuth is easiest).
 2. **New > Blueprint**, connect the `shruthi-munusamy/natya-ai` repo. Render
