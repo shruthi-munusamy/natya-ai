@@ -135,6 +135,124 @@ function resetBuffer() {
   bufferMode = null;
 }
 
+// --- Landmark smoothing ---
+// MediaPipe's per-frame landmark estimates jitter even for a motionless
+// hand/body — small noise in each (x,y,z) every frame. That jitter (a) makes
+// the skeleton overlay visibly tremble, (b) feeds noisy coordinates into
+// normalization/classification, and (c) made pose-derived context flip
+// between e.g. "near chest" and "near face" on a hand that never moved,
+// which was defeating the interpretation dedup (see smoothContext below).
+// An exponential moving average per landmark slot fixes all three at once.
+// Keyed by slot index, not hand identity — if hand count changes, or the
+// left/right ordering swaps between frames, this resets rather than trying
+// to track which physical hand is which; a swap mid-hold would show as one
+// glitched frame, not persistent jitter.
+const LANDMARK_SMOOTHING_ALPHA = 0.4; // weight on the new frame; lower = smoother, more lag
+let smoothedHandsState = [];
+let smoothedPoseState = null;
+
+function smoothLandmarks(raw, prevState, alpha) {
+  if (!raw) return null;
+  if (!prevState || raw.length !== prevState.length) {
+    return raw.map(lm => ({ x: lm.x, y: lm.y, z: lm.z }));
+  }
+  for (let i = 0; i < raw.length; i++) {
+    prevState[i].x += alpha * (raw[i].x - prevState[i].x);
+    prevState[i].y += alpha * (raw[i].y - prevState[i].y);
+    prevState[i].z += alpha * (raw[i].z - prevState[i].z);
+  }
+  return prevState;
+}
+
+function smoothHands(rawHands) {
+  if (rawHands.length !== smoothedHandsState.length) {
+    smoothedHandsState = rawHands.map(h => h.map(lm => ({ x: lm.x, y: lm.y, z: lm.z })));
+    return smoothedHandsState;
+  }
+  for (let i = 0; i < rawHands.length; i++) {
+    smoothedHandsState[i] = smoothLandmarks(rawHands[i], smoothedHandsState[i], LANDMARK_SMOOTHING_ALPHA);
+  }
+  return smoothedHandsState;
+}
+
+function smoothPose(rawPoseList) {
+  if (!rawPoseList || rawPoseList.length === 0) {
+    smoothedPoseState = null;
+    return null;
+  }
+  smoothedPoseState = smoothLandmarks(rawPoseList[0], smoothedPoseState, LANDMARK_SMOOTHING_ALPHA);
+  return [smoothedPoseState];
+}
+
+// --- Display stabilization ---
+// smoothProbs already averages the classifier's softmax over 10 frames, but
+// the *displayed* label was still just argmax of that average, recomputed
+// every frame — near a decision boundary the argmax itself can still flip
+// rapidly even though the underlying distribution is smooth (observed: a
+// hand held at one specific angle flashed through ~10 different labels in
+// well under a second). Requiring a new label to win several consecutive
+// frames before it's shown kills that flicker. This also feeds a steadier
+// signal into the 1s interpretation-stability timer, which was being reset
+// by the same single-frame flickers and could lose the race against a user
+// just holding a mudra still.
+const DISPLAY_HYSTERESIS_FRAMES = 3; // ~100ms at 30fps — short enough to feel instant
+let confirmedPred = null;
+let candidateLabel = null;
+let candidateCount = 0;
+
+function stabilizeForDisplay(pred) {
+  if (!pred) {
+    confirmedPred = null;
+    candidateLabel = null;
+    candidateCount = 0;
+    return null;
+  }
+  if (confirmedPred && pred.name === confirmedPred.name) {
+    candidateLabel = null;
+    candidateCount = 0;
+    confirmedPred = pred; // confidence/type stay live every frame once confirmed
+    return confirmedPred;
+  }
+  if (pred.name === candidateLabel) {
+    candidateCount++;
+  } else {
+    candidateLabel = pred.name;
+    candidateCount = 1;
+  }
+  if (candidateCount >= DISPLAY_HYSTERESIS_FRAMES) {
+    confirmedPred = pred;
+    candidateLabel = null;
+    candidateCount = 0;
+    return confirmedPred;
+  }
+  return confirmedPred; // not yet confirmed — keep showing the last confirmed label, if any
+}
+
+// --- Context stabilization ---
+// computePoseContext is recomputed from raw pose landmarks every frame;
+// even with landmark smoothing, a wrist sitting near a threshold boundary
+// (e.g. "near chest" vs "near face") can still flip occasionally. Since
+// the interpretation dedup key includes context, a flipping context was
+// causing repeated abort+restart cycles on a mudra the user never moved —
+// read as "it keeps refreshing" and, because each restart means the
+// previous stream never gets to show text, also as "it never finishes
+// thinking". Majority-voting over a short window absorbs that without
+// meaningfully delaying a genuine context change.
+const CONTEXT_SMOOTHING_WINDOW = 15; // ~0.5s at 30fps
+let contextBuffer = [];
+
+function smoothContext(rawContext) {
+  contextBuffer.push(rawContext);
+  if (contextBuffer.length > CONTEXT_SMOOTHING_WINDOW) contextBuffer.shift();
+  const counts = new Map();
+  for (const c of contextBuffer) counts.set(c, (counts.get(c) || 0) + 1);
+  let best = null, bestCount = -1;
+  for (const [c, n] of counts) {
+    if (n > bestCount) { best = c; bestCount = n; }
+  }
+  return best;
+}
+
 // --- Skeleton overlay ---
 
 const HAND_CONNECTIONS = [
@@ -400,10 +518,11 @@ async function loop() {
     canvas.height = video.videoHeight || 480;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const hands = results.landmarks || [];
+    const hands = smoothHands(results.landmarks || []);
     for (const h of hands) drawHand(h);
 
-    const pred = await predict(hands);
+    const rawPred = await predict(hands);
+    const pred = stabilizeForDisplay(rawPred);
     if (pred) {
       predEl.textContent = pred.name;
       confEl.textContent = `${pred.type} • ${Math.round(pred.conf * 100)}% confidence`;
@@ -419,11 +538,12 @@ async function loop() {
     if (poseLandmarker) {
       try {
         const poseResults = poseLandmarker.detectForVideo(video, performance.now());
-        context = computePoseContext(poseResults.landmarks, hands);
+        context = computePoseContext(smoothPose(poseResults.landmarks), hands);
       } catch (err) {
         console.warn("Pose detection failed, continuing without context:", err);
       }
     }
+    context = smoothContext(context);
     updateInterpretationState(pred, context);
   }
   requestAnimationFrame(loop);

@@ -235,12 +235,26 @@ free tier mid-project, so the shipped version uses `openai/gpt-oss-120b` —
 a real example of a dependency on a third-party model catalog changing
 under a live project, handled by isolating the model name to one constant.)
 
-**Temporal smoothing on classifier outputs.** Raw per-frame predictions are
-noisy — a hand mid-transition between two mudras produces flickering
+**Temporal smoothing, at three separate layers.** Raw per-frame predictions
+are noisy — a hand mid-transition between two mudras produces flickering
 top-1 labels frame to frame. Averaging softmax distributions over a
-10-frame window (~333ms at 30fps) smooths the *decision* without adding
-visible display lag, and resets on hand-count change or hand loss so it
-doesn't carry stale state across a different gesture space.
+10-frame window (~333ms at 30fps) smooths the underlying *decision*, but
+live testing showed that wasn't sufficient on its own: the *displayed*
+label was still raw argmax of that average recomputed every frame, which
+could itself flip near a decision boundary (observed: one hand angle
+flashed through ~10 different labels in under a second), and pose-derived
+context (used for LLM grounding) was recomputed from unsmoothed landmarks
+every frame, so threshold-adjacent values like "near chest" vs. "near face"
+flickered on a hand that never moved — which fed a changing key into the
+interpretation dedup and caused the app to abort and restart the LLM call
+before any text could render, reading as "it never finishes thinking."
+Fixed with two more layers: an EMA filter on raw landmark positions
+(reduces jitter in the overlay and in what both the classifier and pose
+context see), and hysteresis on the *displayed* label and the *context
+string actually sent to the LLM* (require N consecutive matching frames /
+majority-vote over a short window before accepting a change), independent
+of the softmax-level smoothing. All three reset on hand loss or count
+change so none of it carries stale state across a different gesture space.
 
 **The knowledge base is authored, not scraped.** Viniyoga interpretation is
 specific enough, and wrong often enough in generic web sources, that an LLM
@@ -259,6 +273,21 @@ conditions, similar subjects). They do not reflect what happens under
 distribution shift on a novel webcam, and that gap is worth stating plainly
 rather than hiding behind a 97-99% headline number:
 
+- **This is static-pose recognition, not motion or sequence understanding —
+  a real ceiling on what "viniyoga interpretation" means here, not a bug.**
+  The classifier looks at one hand shape per frame and nothing else. It has
+  no notion of two *different* mudras held simultaneously on two hands (the
+  samyukta model only knows 16 specific *combined* two-hand shapes like
+  Anjali or Garuda — it cannot represent, say, Katakamukha on one hand and
+  Shikara on the other), no notion of a gesture traced through space (a
+  bow-drawing motion across the chest), and no notion of a mudra defined by
+  continuous motion between two hand shapes (Sandamsha — also not in the
+  dataset's class list at all, so it's doubly out of scope). Static-image
+  classification was the right scope for this iteration — it's what the
+  Samarth0710 dataset supports — but extending to real sequence/motion
+  understanding would mean a different model architecture (temporal/
+  sequence modeling) and new training data that doesn't exist yet, not a
+  parameter to tune in the current one.
 - **Partial-bend transitions aren't recognized until fully formed.** The
   dataset only contains static, fully-formed poses — no transition frames —
   so mudras that differ by degree of finger bend (Pataka → Tripataka as the
@@ -270,11 +299,14 @@ rather than hiding behind a 97-99% headline number:
   convention, not the canonical form.
 - **Chandrakala is effectively never recognized** — live testing showed it
   classified as Suchi at 100% confidence consistently, not just
-  occasionally. **Bhramara → Katakamukha (originally traced to certain
-  thumb positions; live testing found it consistently misreads the index
-  finger's position specifically), Katakamukha_1 → Hamsasya, Shikara ↔
-  Kapita, Mrigasirsha → Katakamukha_2, and Chatura → Shukatunda** are
-  additional confusions found in live testing. In every case the
+  occasionally. **Bhramara → Katakamukha and, separately, Bhramara →
+  Hamsasya (originally traced to certain thumb positions; live testing found
+  it consistently misreads the index finger's position specifically),
+  Katakamukha_1 → Hamsasya, Shikara ↔ Kapita, Mrigasirsha → Katakamukha_2,
+  Chatura → Shukatunda, Tripataka → Mayura, and Mushti → Katakamukha_2**
+  (Mushti is otherwise the easiest shape in the set — a closed fist — which
+  makes this one the most surprising entry here) are additional confusions
+  found across two separate live testing sessions. In every case the
   hand-landmark overlay rendered correctly on screen, confirming these are
   classifier decision-boundary failures, not upstream MediaPipe detection
   failures. Checked directly against the held-out validation confusion
@@ -286,10 +318,10 @@ rather than hiding behind a 97-99% headline number:
   developer's lighting, hand, and camera vs. the training distribution), not
   something the offline eval numbers would ever surface. A demo that only
   reports validation metrics would be quietly overclaiming. (Caveat: this
-  list comes from one qualitative testing session by one person on one
-  camera setup, not a systematic re-evaluation — treat it as a set of
-  confirmed failure examples, not an exhaustive or statistically
-  characterized error rate.)
+  list comes from qualitative testing sessions by one person on one camera
+  setup, not a systematic re-evaluation — treat it as a set of confirmed
+  failure examples, not an exhaustive or statistically characterized error
+  rate.)
 - **The model only knows the mudras it was trained on.** Showing it a real
   Bharatanatyam mudra outside the Samarth0710 dataset's 28+16 classes (e.g.
   Hamsapaksha) isn't a "misclassification" in any meaningful sense — a
