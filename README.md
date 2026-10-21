@@ -41,7 +41,7 @@ Landmark normalization (wrist-centered, scale-normalized)
   ▼
 ONNX classifier (in-browser, onnxruntime-web)
   │  1 hand  -> asamyukta model (28 classes, attention)
-  │  2 hands -> samyukta model  (16 classes, MLP)
+  │  2 hands -> samyukta model  (16 classes, attention)
   ▼
 Temporal smoothing (10-frame softmax average)
   │
@@ -70,18 +70,67 @@ round-trip for classification, which is what makes it feel real-time.
 
 ## Results
 
+### A train/serve skew bug, found and fixed
+
+Live testing on a real webcam kept producing misclassifications on mudras
+that are geometrically easy to tell apart (e.g. Tripataka vs. Mayura: the
+thumb sits outside the fist for one, connects to the ring finger for the
+other), while held-out validation accuracy stayed above 97%. That gap
+between "validation looks great" and "obviously-distinct shapes fail live"
+was the signal that something more specific than generic distribution shift
+was going on.
+
+Root cause: the dataset's landmarks were originally extracted with
+`mp.solutions.hands` (MediaPipe's legacy Python API), but the browser's live
+inference uses `@mediapipe/tasks-vision` HandLandmarker (the newer Tasks
+API) — same 21-point format, but a different underlying landmark-detection
+model with measurably different coordinate precision. Verified directly: ran
+the then-trained classifier on 222 dataset images, once using landmarks from
+each API for the *same* images. Legacy-API landmarks (what training used):
+**100%** accuracy. Tasks-API landmarks (what the browser actually sends):
+**88.3%** — and every single error went that direction; Tasks-API landmarks
+never fixed a case Legacy-API got wrong. That's a train/serve skew, not
+dataset-vs-webcam distribution shift: the classifier had never actually seen
+the kind of landmarks it gets at inference time.
+
+Fix: rewrote `src/features/extractor.py` to use the Tasks-vision API (the
+exact same model files `web/app.js` loads) instead of the legacy API,
+re-extracted landmarks for the full 28,431-image dataset, and retrained both
+classifiers on the corrected cache. Re-running the identical before/after
+check on the retrained model: **100%** accuracy on Tasks-API landmarks, 0
+errors. The specific bug is confirmed fixed. What this does *not* claim:
+genuine distribution shift between the dataset's studio-style photos and a
+particular live webcam (different camera, lighting, background, hand
+presentation) is a separate, real effect this fix doesn't touch — the
+numbers below are the corrected, now train/serve-consistent baseline, not a
+guarantee that every live-webcam error reported earlier is gone. That needs
+a live retest to confirm.
+
+One side effect worth noting plainly: validation accuracy is *lower* than
+it was before this fix (asamyukta 96.20% vs. the previous 97.70%). That's
+not a regression — the old number was measured on the same Legacy-API
+landmarks the model trained on, which is exactly the comparison that hid
+this bug. The new number is lower because Tasks-API landmarks are
+genuinely slightly noisier, but it's the number that actually reflects what
+ships to the browser.
+
 ### Classifier accuracy
 
 Two separate classifiers, split by hand count, because asamyukta
 (single-hand) and samyukta (double-hand) mudras are geometrically distinct
 problems — see [Design decisions](#design-decisions).
 
-**Asamyukta (28 classes, attention model)** — top-1 **97.70%**, top-3
-**99.32%**, macro F1 **0.977**, on a held-out validation split of 2,220
-samples.
+**Asamyukta (28 classes, attention model)** — top-1 **96.20%**, top-3
+**98.64%**, macro F1 **0.962**, on a held-out validation split of 2,208
+samples. (See the train/serve skew note above for why this is lower than an
+earlier 97.70% — this number is the one that's actually consistent with
+production.)
 
-**Samyukta (16 classes, MLP)** — top-1 **99.54%**, top-3 **100.00%**, macro
-F1 **0.996**, on a held-out validation split of 654 samples.
+**Samyukta (16 classes, attention model)** — top-1 **99.69%**, top-3
+**100.00%**, macro F1 **0.997**, on a held-out validation split of 651
+samples. Attention now edges out the MLP baseline (98.77%) by about 1pp —
+previously MLP had tied or slightly beaten attention here; see
+[Design decisions](#design-decisions) for why that flipped.
 
 The tables below use the classifier's raw output labels, which follow the
 Samarth0710 dataset's spellings (e.g. "Pathaka", "Tripathaka"). The app maps
@@ -96,34 +145,34 @@ outputs and what the confusion matrices are indexed by.
 
 | Class | Precision | Recall | F1 | Support |
 |---|---|---|---|---|
-| Aralam | 0.951 | 0.970 | 0.961 | 101 |
-| Mayura | 0.979 | 0.969 | 0.974 | 98 |
-| Sikharam | 0.989 | 1.000 | 0.995 | 92 |
-| Ardhachandran | 1.000 | 1.000 | 1.000 | 91 |
-| Trishulam | 0.936 | 0.967 | 0.951 | 91 |
-| Kapith | 1.000 | 0.989 | 0.994 | 90 |
-| Chandrakala | 1.000 | 1.000 | 1.000 | 86 |
-| Hamsasyam | 0.976 | 0.988 | 0.982 | 84 |
-| Katrimukha | 0.963 | 0.940 | 0.951 | 83 |
-| Mushti | 1.000 | 1.000 | 1.000 | 82 |
-| Shukatundam | 1.000 | 0.902 | 0.949 | 82 |
-| Ardhapathaka | 0.940 | 0.963 | 0.951 | 81 |
-| Pathaka | 0.929 | 0.963 | 0.945 | 81 |
-| Suchi | 1.000 | 0.975 | 0.988 | 81 |
-| Tripathaka | 0.987 | 0.938 | 0.962 | 81 |
-| Padmakosha | 1.000 | 0.988 | 0.994 | 80 |
-| Chaturam | 0.988 | 1.000 | 0.994 | 79 |
-| Katakamukha_1 | 0.986 | 0.948 | 0.967 | 77 |
-| Tamarachudam | 0.987 | 1.000 | 0.994 | 77 |
-| Katakamukha_3 | 1.000 | 0.974 | 0.987 | 76 |
-| Simhamukham | 0.937 | 0.974 | 0.955 | 76 |
-| Bramaram | 0.973 | 0.986 | 0.980 | 74 |
-| Sarpasirsha | 0.971 | 0.944 | 0.958 | 72 |
-| Katakamukha_2 | 0.972 | 1.000 | 0.986 | 69 |
-| Kangulam | 0.970 | 1.000 | 0.985 | 65 |
-| Mukulam | 0.954 | 1.000 | 0.976 | 62 |
-| Alapadmam | 1.000 | 1.000 | 1.000 | 56 |
-| Mrigasirsha | 0.981 | 1.000 | 0.991 | 53 |
+| Aralam | 0.950 | 0.941 | 0.945 | 101 |
+| Mayura | 0.990 | 0.990 | 0.990 | 97 |
+| Sikharam | 0.979 | 1.000 | 0.989 | 92 |
+| Ardhachandran | 0.968 | 1.000 | 0.984 | 91 |
+| Kapith | 0.924 | 0.944 | 0.934 | 90 |
+| Trishulam | 0.977 | 0.944 | 0.960 | 90 |
+| Chandrakala | 1.000 | 0.988 | 0.994 | 84 |
+| Tripathaka | 0.962 | 0.893 | 0.926 | 84 |
+| Hamsasyam | 0.976 | 0.964 | 0.970 | 83 |
+| Katrimukha | 0.929 | 0.940 | 0.934 | 83 |
+| Ardhapathaka | 0.929 | 0.975 | 0.952 | 81 |
+| Mushti | 0.988 | 0.975 | 0.981 | 81 |
+| Pathaka | 0.951 | 0.963 | 0.957 | 81 |
+| Shukatundam | 0.963 | 0.951 | 0.957 | 81 |
+| Suchi | 0.988 | 0.988 | 0.988 | 80 |
+| Chaturam | 0.963 | 1.000 | 0.981 | 79 |
+| Katakamukha_3 | 0.987 | 0.974 | 0.980 | 77 |
+| Padmakosha | 0.987 | 0.974 | 0.980 | 77 |
+| Tamarachudam | 0.971 | 0.895 | 0.932 | 76 |
+| Bramaram | 0.912 | 0.973 | 0.942 | 75 |
+| Katakamukha_1 | 0.917 | 0.880 | 0.898 | 75 |
+| Sarpasirsha | 1.000 | 0.973 | 0.986 | 73 |
+| Simhamukham | 0.932 | 0.944 | 0.938 | 72 |
+| Katakamukha_2 | 0.957 | 0.985 | 0.971 | 68 |
+| Kangulam | 0.938 | 0.968 | 0.953 | 63 |
+| Mukulam | 0.984 | 0.984 | 0.984 | 61 |
+| Mrigasirsha | 0.966 | 0.982 | 0.974 | 57 |
+| Alapadmam | 0.946 | 0.946 | 0.946 | 56 |
 
 </details>
 
@@ -132,22 +181,28 @@ outputs and what the confusion matrices are indexed by.
 
 | Class | Precision | Recall | F1 | Support |
 |---|---|---|---|---|
-| Sakata | 1.000 | 1.000 | 1.000 | 96 |
-| Kapotham | 1.000 | 1.000 | 1.000 | 85 |
-| Kartariswastika | 1.000 | 1.000 | 1.000 | 62 |
-| Pasha | 1.000 | 0.966 | 0.983 | 59 |
-| Katakavardhana | 1.000 | 1.000 | 1.000 | 51 |
-| Kilaka | 0.962 | 1.000 | 0.980 | 50 |
-| Garuda | 1.000 | 1.000 | 1.000 | 49 |
-| Swastikam | 1.000 | 0.973 | 0.986 | 37 |
+| Kapotham | 1.000 | 0.990 | 0.995 | 97 |
+| Shanka | 1.000 | 1.000 | 1.000 | 74 |
+| Anjali | 0.984 | 1.000 | 0.992 | 62 |
+| Kartariswastika | 1.000 | 1.000 | 1.000 | 59 |
+| Garuda | 1.000 | 1.000 | 1.000 | 44 |
+| Pasha | 1.000 | 1.000 | 1.000 | 44 |
+| Karkatta | 1.000 | 1.000 | 1.000 | 38 |
+| Katakavardhana | 1.000 | 1.000 | 1.000 | 37 |
+| Swastikam | 0.973 | 1.000 | 0.986 | 36 |
+| Kilaka | 1.000 | 1.000 | 1.000 | 35 |
+| Sakata | 1.000 | 1.000 | 1.000 | 33 |
 | Khatva | 1.000 | 1.000 | 1.000 | 30 |
-| Karkatta | 1.000 | 1.000 | 1.000 | 28 |
-| Nagabandha | 0.960 | 1.000 | 0.980 | 24 |
-| Shanka | 1.000 | 1.000 | 1.000 | 23 |
-| Berunda | 1.000 | 1.000 | 1.000 | 22 |
-| Anjali | 1.000 | 1.000 | 1.000 | 17 |
-| Samputa | 1.000 | 1.000 | 1.000 | 11 |
-| Pushpaputa | 1.000 | 1.000 | 1.000 | 10 |
+| Nagabandha | 1.000 | 0.955 | 0.977 | 22 |
+| Berunda | 1.000 | 1.000 | 1.000 | 21 |
+| Pushpaputa | 1.000 | 1.000 | 1.000 | 13 |
+| Samputa | 1.000 | 1.000 | 1.000 | 6 |
+
+Per-class support shifted somewhat from the previous table (e.g. Sakata
+96→33) — the Tasks-vision API has different per-class occlusion sensitivity
+than the legacy API it replaced, so "both hands detected" rates aren't
+identical class-by-class even though the aggregate rate barely moved
+(~3,284 vs ~3,292 samples total). Checked directly, not just asserted.
 
 </details>
 
@@ -199,17 +254,23 @@ not a pipeline cost. Regenerate with `python scripts/eval_latency.py`
 
 ## Design decisions
 
-**Attention won on asamyukta, MLP won (tied) on samyukta.** Asamyukta
-classification benefits from attention over the 21 keypoints because
-distinguishing shapes like Katakamukha's sub-variants depends on relative
-keypoint geometry the attention layer can learn explicitly. Samyukta has
-half as many classes but a third as much usable training data (MediaPipe
-only detects both hands in ~24% of double-hand samples — see
-[Limitations](#real-world-limitations)), and low per-class sample counts
-mean attention has nothing extra to learn that the MLP baseline doesn't
-already capture from the 126-dim concatenated features. Shipping the
-simpler model where it performs equally is the right call, not just the
-convenient one.
+**Attention wins on both asamyukta and samyukta — a conclusion that changed
+once a bug got fixed.** Asamyukta classification benefits from attention
+over the 21 keypoints because distinguishing shapes like Katakamukha's
+sub-variants depends on relative keypoint geometry the attention layer can
+learn explicitly. On samyukta, the original finding (on the pre-fix,
+legacy-API landmarks) was that attention and the MLP baseline tied — the
+hypothesis at the time was that samyukta's smaller per-class sample count
+(MediaPipe only detects both hands in ~24% of double-hand samples — see
+[Limitations](#real-world-limitations)) left attention nothing extra to
+learn over the 126-dim concatenated MLP features. After retraining on the
+corrected Tasks-API landmarks (see the train/serve skew section above),
+attention edges out the MLP by about 1pp (99.69% vs. 98.77%) on the same
+data split. That doesn't fully invalidate the original reasoning — low
+sample count is still real — but it shows the *landmark noise
+characteristics*, not sample count alone, were doing more of the work in
+that original "tie" than the first write-up gave them credit for. Worth
+stating plainly rather than quietly editing the old claim away.
 
 **RAG over a fine-tuned or trained viniyoga model.** Viniyoga interpretation
 isn't a classification problem with a fixed label space — it's contextual
@@ -221,10 +282,12 @@ mudra, correcting a translation) doesn't require retraining anything.
 **ONNX + INT8 + in-browser inference.** No inference server for
 classification means no per-request cost, no latency floor from a network
 round trip, and no privacy concern about streaming someone's webcam feed to
-a server. INT8 dynamic quantization cuts both models to ~200KB
-(asamyukta: 456KB → 193KB; samyukta: 793KB → 204KB) with negligible accuracy
-loss, since landmark coordinates are a well-behaved input distribution for
-weight-only quantization.
+a server. INT8 dynamic quantization cuts both models significantly
+(asamyukta: 456KB → 193KB; samyukta: 1404KB → 473KB — larger than before
+since samyukta now uses the attention architecture, not the smaller MLP)
+with negligible accuracy loss, since landmark coordinates are a
+well-behaved input distribution for weight-only quantization. Both are
+still well within browser-load budget.
 
 **Llama (70B-class) via Groq.** Free-tier, fast (Groq's LPU inference is
 materially faster time-to-first-token than most hosted alternatives at this
@@ -297,31 +360,37 @@ rather than hiding behind a 97-99% headline number:
   Tripataka specifically: the dataset's samples use a full ring-finger bend
   rather than the canonical half-bend, so the model learned the dataset's
   convention, not the canonical form.
-- **Chandrakala is effectively never recognized** — live testing showed it
-  classified as Suchi at 100% confidence consistently, not just
-  occasionally. **Bhramara → Katakamukha and, separately, Bhramara →
-  Hamsasya (originally traced to certain thumb positions; live testing found
-  it consistently misreads the index finger's position specifically),
-  Katakamukha_1 → Hamsasya, Shikara ↔ Kapita, Mrigasirsha → Katakamukha_2,
-  Chatura → Shukatunda, Tripataka → Mayura, and Mushti → Katakamukha_2**
-  (Mushti is otherwise the easiest shape in the set — a closed fist — which
-  makes this one the most surprising entry here) are additional confusions
-  found across two separate live testing sessions. In every case the
-  hand-landmark overlay rendered correctly on screen, confirming these are
-  classifier decision-boundary failures, not upstream MediaPipe detection
-  failures. Checked directly against the held-out validation confusion
-  matrix: all of these pairs show **zero** validation-set misclassifications
-  except Katakamukha_1 → Hamsasya, which has exactly **1 misclassification
-  out of 77** validation samples — a real but rare confusion offline,
-  clearly amplified under live distribution shift.
-  That gap is the point: the failure mode is distribution shift (this
-  developer's lighting, hand, and camera vs. the training distribution), not
-  something the offline eval numbers would ever surface. A demo that only
-  reports validation metrics would be quietly overclaiming. (Caveat: this
-  list comes from qualitative testing sessions by one person on one camera
-  setup, not a systematic re-evaluation — treat it as a set of confirmed
-  failure examples, not an exhaustive or statistically characterized error
-  rate.)
+- **A specific root cause for much of the live-testing confusion below was
+  found and fixed — see [the train/serve skew section](#a-trainserve-skew-bug-found-and-fixed)
+  above — but it hasn't been live-retested yet.** The following confusion
+  pairs (Chandrakala effectively always read as Suchi; Bhramara →
+  Katakamukha and, separately, Bhramara → Hamsasya; Katakamukha_1 →
+  Hamsasya; Shikara ↔ Kapita; Mrigasirsha → Katakamukha_2; Chatura →
+  Shukatunda; Tripataka → Mayura; and Mushti → Katakamukha_2 — Mushti is
+  otherwise the easiest shape in the set, a closed fist, which made this one
+  the most surprising) were all observed *before* the landmark-extraction
+  fix, using the classifier that had been trained on a different API's
+  landmarks than the browser ever sent it. A controlled before/after
+  diagnostic confirmed that specific mismatch alone accounts for a real,
+  measured accuracy drop (100% → 88.3% on identical images). It's plausible
+  — but not yet confirmed — that fixing it resolves some or most of these
+  specific pairs. What the fix does *not* address is separate, genuine
+  distribution shift between the dataset's studio-style collection
+  conditions and any particular live webcam (lighting, camera, background,
+  hand presentation), which is a real, different effect. In every observed
+  case the hand-landmark overlay rendered correctly on screen, which was
+  the basis for concluding (at the time) that these were classifier
+  decision-boundary failures rather than upstream MediaPipe detection
+  failures — that reasoning was correct as far as it went, but incomplete,
+  since it didn't yet account for which *version* of MediaPipe landmarks
+  the classifier had actually learned from. Checked directly against the
+  held-out validation confusion matrix at the time: all of these pairs
+  showed **zero** validation-set misclassifications except Katakamukha_1 →
+  Hamsasya (1 out of 77). (Caveat: the original list came from qualitative
+  testing sessions by one person on one camera setup, not a systematic
+  re-evaluation — treat it as a set of observed failure examples from
+  before the fix, not a current, exhaustive, or statistically characterized
+  error rate. This whole bullet needs an update once retested live.)
 - **The model only knows the mudras it was trained on.** Showing it a real
   Bharatanatyam mudra outside the Samarth0710 dataset's 28+16 classes (e.g.
   Hamsapaksha) isn't a "misclassification" in any meaningful sense — a
@@ -329,9 +398,10 @@ rather than hiding behind a 97-99% headline number:
   report its nearest match among the classes it knows, regardless of how
   little the input actually resembles that class.
 - **MediaPipe's two-hand detection rate**: only ~24% of the dataset's
-  double-hand samples have both hands detected by MediaPipe at all — hand
-  occlusion when hands are close together is precisely when samyuktas
-  happen. The samyukta model is trained and evaluated on the ~3,269 usable
+  double-hand samples have both hands detected by MediaPipe at all (24.2%
+  under the Tasks-vision API, essentially unchanged from the legacy API) —
+  hand occlusion when hands are close together is precisely when samyuktas
+  happen. The samyukta model is trained and evaluated on the ~3,254 usable
   samples that survive that filter; the other 76% of double-hand images
   were simply undetectable at the landmark-extraction stage, upstream of
   anything the classifier could fix.
@@ -378,6 +448,17 @@ uvicorn src.llm.server:app --port 8001
 Then open `http://localhost:8000`, grant camera access, and show a mudra.
 
 Deploying to Render + Vercel: see [DEPLOY.md](./DEPLOY.md).
+
+**Troubleshooting a `protobuf`/`mediapipe` import error:** if `import mediapipe`
+raises `AttributeError: 'MessageFactory' object has no attribute
+'GetPrototype'`, something in the environment has pulled in `protobuf>=5`
+(mediapipe needs `<5,>=4.25.3`; chromadb's `opentelemetry-proto` dependency
+wants `>=5` — a genuine conflict between this project's training and
+serving halves in one shared environment, hit firsthand after installing a
+few extra packages into an already-set-up env over time, not from a clean
+`pip install -r requirements.txt`). Fix: `pip install "protobuf==4.25.3"`.
+That'll print a pip conflict warning about `opentelemetry-proto` — harmless
+for the training-side scripts, since they never import chromadb.
 
 ## Tech stack
 

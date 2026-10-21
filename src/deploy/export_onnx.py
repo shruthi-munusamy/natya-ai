@@ -49,6 +49,12 @@ def export(checkpoint_path: str, out_path: str, feature_dim: int, arch_key: str)
         output_names=["logits"],
         dynamic_axes={"landmarks": {0: "batch"}, "logits": {0: "batch"}},
         opset_version=17,
+        # torch>=2.6 defaults this to True. The dynamo exporter's shape info
+        # isn't parseable by onnxruntime's quantizer (quantize_dynamic fails
+        # with a ShapeInferenceError on the resulting graph) — confirmed by
+        # hitting that exact failure after a torch upgrade silently flipped
+        # this default. Must stay False.
+        dynamo=False,
     )
 
     onnx.checker.check_model(onnx.load(out_path))
@@ -80,12 +86,12 @@ def main():
         "attention",
     )
 
-    print("Exporting samyukta (MLP)...")
+    print("Exporting samyukta (attention)...")
     samyukta_classes = export(
-        "checkpoints/samyukta_mlp.pt",
+        "checkpoints/samyukta_attention.pt",
         "web/models/samyukta.onnx",
         TWO_HAND_FEATURE_DIM,
-        "mlp_two_hand",
+        "attention_two_hand",
     )
 
     import json
