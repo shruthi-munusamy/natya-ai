@@ -96,12 +96,27 @@ the kind of landmarks it gets at inference time.
 Fix: rewrote `src/features/extractor.py` to use the Tasks-vision API (the
 exact same model files `web/app.js` loads) instead of the legacy API,
 re-extracted landmarks for the full 28,431-image dataset, and retrained both
-classifiers on the corrected cache. Re-running the identical before/after
-check on the retrained model: **100%** accuracy on Tasks-API landmarks, 0
-errors. The specific bug is confirmed fixed. What this does *not* claim:
-genuine distribution shift between the dataset's studio-style photos and a
-particular live webcam (different camera, lighting, background, hand
-presentation) is a separate, real effect this fix doesn't touch — the
+classifiers on the corrected cache.
+
+First re-check of the retrained model used the same 222 images as before and
+showed 100% accuracy, 0 errors — which turned out to be a flawed test: 81%
+of those images were in the *training* set, not held out, so that number
+was mostly memorization, not generalization. Caught this, redid it properly
+using only genuinely held-out validation images for the same problem
+classes (909 images, confirmed excluded from training): **96.4%** accuracy,
+32 errors — consistent with the model's overall held-out accuracy below,
+not a suspicious perfect score. Katakamukha_1 and Tripataka still show real
+residual confusion in this proper test (e.g. Katakamukha_1 confused with
+Bramaram, Mrigasirsha, Ardhachandran, Chaturam, Simhamukham, Kangulam across
+different validation images). So: the specific train/serve mismatch this
+section describes is real and the fix is real — that conclusion doesn't
+depend on the flawed re-check, since it came from a separate, correctly-
+held-out before/after comparison on the *original* model. What's corrected
+here is the claim that the fix eliminated error entirely; it didn't.
+Separately, genuine distribution shift between the dataset's studio-style
+photos and a particular live webcam (different camera, lighting,
+background, hand presentation) is still a separate, real effect this fix
+doesn't touch — the
 numbers below are the corrected, now train/serve-consistent baseline, not a
 guarantee that every live-webcam error reported earlier is gone. That needs
 a live retest to confirm.
