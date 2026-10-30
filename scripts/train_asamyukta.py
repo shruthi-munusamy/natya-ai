@@ -9,11 +9,11 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from src.data.preprocess import build_asamyukta_dataset, horizontal_flip
+from src.data.preprocess import build_asamyukta_dataset, horizontal_flip, random_rotate
 from src.models.classifier import MLPClassifier, AttentionClassifier
 
 
-def train_one_model(model, data, epochs, batch_size, lr, device, flip_prob=0.5):
+def train_one_model(model, data, epochs, batch_size, lr, device, flip_prob=0.5, rotate_prob=0.8):
     x_train = torch.from_numpy(data["x_train"]).float()
     y_train = torch.from_numpy(data["y_train"]).long()
     x_val = torch.from_numpy(data["x_val"]).float().to(device)
@@ -37,6 +37,10 @@ def train_one_model(model, data, epochs, batch_size, lr, device, flip_prob=0.5):
                 flip = np.random.rand(len(xb_np)) < flip_prob
                 if flip.any():
                     xb_np[flip] = horizontal_flip(xb_np[flip])
+            if rotate_prob > 0:
+                rotate = np.random.rand(len(xb_np)) < rotate_prob
+                if rotate.any():
+                    xb_np[rotate] = random_rotate(xb_np[rotate])
             xb = torch.from_numpy(xb_np).to(device)
             yb = yb.to(device)
             logits = model(xb)

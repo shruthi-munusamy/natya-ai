@@ -129,17 +129,41 @@ this bug. The new number is lower because Tasks-API landmarks are
 genuinely slightly noisier, but it's the number that actually reflects what
 ships to the browser.
 
+### Orientation lock-in, found and fixed
+
+After the skew fix, live testing still had two mudras failing consistently:
+Chandrakala read as Suchi, and Bramaram as Katakamukha_1, despite ~97-99%
+validation recall for both. Cause: the dataset photographs hands almost
+entirely side-on, at a fixed tilt per class. Chandrakala's wrist-to-middle-MCP
+axis sits 48-79 deg from vertical in 80% of samples (index finger pointing
+sideways), while Suchi spans upright to horizontal. Normalization removed
+translation and scale but not rotation, so the classifier learned
+orientation as a shortcut feature, and an upright Chandrakala held toward a
+webcam looked like Suchi to it.
+
+Reproduced offline by rotating validation hands upright (wrist-to-MCP axis
+vertical): the old model got **0%** of Chandrakala right (mostly Suchi /
+Katrimukha) and **21%** overall under random rotation. Fix: random 3D rotation
+augmentation during training (`random_rotate` in `src/data/preprocess.py`:
+full in-plane roll, +/-35 deg pitch/yaw to approximate palm-facing vs.
+side-on views). Result on the same tests: upright Chandrakala **99%**,
+random-rotation overall **94%**, at a cost of ~1pp plain validation accuracy
+(96.20% -> 95.15%). No browser-side change; only the exported model differs.
+Validation is still from the same side-on studio photos, so this is a
+simulation of the live condition, not a live measurement.
+
 ### Classifier accuracy
 
 Two separate classifiers, split by hand count, because asamyukta
 (single-hand) and samyukta (double-hand) mudras are geometrically distinct
 problems — see [Design decisions](#design-decisions).
 
-**Asamyukta (28 classes, attention model)** — top-1 **96.20%**, top-3
-**98.64%**, macro F1 **0.962**, on a held-out validation split of 2,208
-samples. (See the train/serve skew note above for why this is lower than an
-earlier 97.70% — this number is the one that's actually consistent with
-production.)
+**Asamyukta (28 classes, attention model)** — top-1 **95.15%**, top-3
+**98.55%**, macro F1 **0.950**, on a held-out validation split of 2,208
+samples. (See the train/serve skew and orientation notes above for why this
+is lower than earlier 97.70% / 96.20% figures — this model trades ~1pp of
+in-distribution accuracy for holding up when the hand is rotated, which is
+what actually happens live.)
 
 **Samyukta (16 classes, attention model)** — top-1 **99.69%**, top-3
 **100.00%**, macro F1 **0.997**, on a held-out validation split of 651
@@ -160,34 +184,34 @@ outputs and what the confusion matrices are indexed by.
 
 | Class | Precision | Recall | F1 | Support |
 |---|---|---|---|---|
-| Aralam | 0.950 | 0.941 | 0.945 | 101 |
-| Mayura | 0.990 | 0.990 | 0.990 | 97 |
-| Sikharam | 0.979 | 1.000 | 0.989 | 92 |
-| Ardhachandran | 0.968 | 1.000 | 0.984 | 91 |
-| Kapith | 0.924 | 0.944 | 0.934 | 90 |
-| Trishulam | 0.977 | 0.944 | 0.960 | 90 |
+| Aralam | 0.970 | 0.950 | 0.960 | 101 |
+| Mayura | 0.968 | 0.938 | 0.953 | 97 |
+| Sikharam | 0.989 | 1.000 | 0.995 | 92 |
+| Ardhachandran | 1.000 | 1.000 | 1.000 | 91 |
+| Kapith | 0.875 | 0.933 | 0.903 | 90 |
+| Trishulam | 0.945 | 0.956 | 0.950 | 90 |
 | Chandrakala | 1.000 | 0.988 | 0.994 | 84 |
-| Tripathaka | 0.962 | 0.893 | 0.926 | 84 |
-| Hamsasyam | 0.976 | 0.964 | 0.970 | 83 |
-| Katrimukha | 0.929 | 0.940 | 0.934 | 83 |
-| Ardhapathaka | 0.929 | 0.975 | 0.952 | 81 |
-| Mushti | 0.988 | 0.975 | 0.981 | 81 |
-| Pathaka | 0.951 | 0.963 | 0.957 | 81 |
-| Shukatundam | 0.963 | 0.951 | 0.957 | 81 |
-| Suchi | 0.988 | 0.988 | 0.988 | 80 |
-| Chaturam | 0.963 | 1.000 | 0.981 | 79 |
-| Katakamukha_3 | 0.987 | 0.974 | 0.980 | 77 |
-| Padmakosha | 0.987 | 0.974 | 0.980 | 77 |
-| Tamarachudam | 0.971 | 0.895 | 0.932 | 76 |
-| Bramaram | 0.912 | 0.973 | 0.942 | 75 |
-| Katakamukha_1 | 0.917 | 0.880 | 0.898 | 75 |
-| Sarpasirsha | 1.000 | 0.973 | 0.986 | 73 |
-| Simhamukham | 0.932 | 0.944 | 0.938 | 72 |
-| Katakamukha_2 | 0.957 | 0.985 | 0.971 | 68 |
-| Kangulam | 0.938 | 0.968 | 0.953 | 63 |
-| Mukulam | 0.984 | 0.984 | 0.984 | 61 |
-| Mrigasirsha | 0.966 | 0.982 | 0.974 | 57 |
-| Alapadmam | 0.946 | 0.946 | 0.946 | 56 |
+| Tripathaka | 0.938 | 0.893 | 0.915 | 84 |
+| Hamsasyam | 0.963 | 0.940 | 0.951 | 83 |
+| Katrimukha | 0.941 | 0.964 | 0.952 | 83 |
+| Ardhapathaka | 0.952 | 0.975 | 0.963 | 81 |
+| Mushti | 0.976 | 1.000 | 0.988 | 81 |
+| Pathaka | 0.928 | 0.951 | 0.939 | 81 |
+| Shukatundam | 0.949 | 0.926 | 0.938 | 81 |
+| Suchi | 0.975 | 0.963 | 0.969 | 80 |
+| Chaturam | 1.000 | 0.962 | 0.981 | 79 |
+| Katakamukha_3 | 0.923 | 0.935 | 0.929 | 77 |
+| Padmakosha | 0.960 | 0.935 | 0.947 | 77 |
+| Tamarachudam | 0.944 | 0.895 | 0.919 | 76 |
+| Bramaram | 0.960 | 0.960 | 0.960 | 75 |
+| Katakamukha_1 | 0.918 | 0.893 | 0.905 | 75 |
+| Sarpasirsha | 0.932 | 0.945 | 0.939 | 73 |
+| Simhamukham | 0.958 | 0.944 | 0.951 | 72 |
+| Katakamukha_2 | 0.944 | 0.985 | 0.964 | 68 |
+| Kangulam | 0.921 | 0.921 | 0.921 | 63 |
+| Mukulam | 0.968 | 0.984 | 0.976 | 61 |
+| Mrigasirsha | 0.931 | 0.947 | 0.939 | 57 |
+| Alapadmam | 0.883 | 0.946 | 0.914 | 56 |
 
 </details>
 

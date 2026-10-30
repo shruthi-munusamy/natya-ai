@@ -53,6 +53,45 @@ def horizontal_flip(hand_features: np.ndarray) -> np.ndarray:
     return points.reshape(n, HAND_FEATURE_DIM)
 
 
+def random_rotate(
+    hand_features: np.ndarray,
+    max_roll_deg: float = 180.0,
+    max_tilt_deg: float = 35.0,
+    rng: np.random.Generator | None = None,
+) -> np.ndarray:
+    """Random 3D rotation about the wrist (the origin after normalization).
+
+    The dataset photographs hands almost entirely side-on and at fixed
+    tilts per class — e.g. Chandrakala's wrist->MCP axis sits at 48-79 deg
+    from vertical in 80% of samples, so the model learned "index finger
+    horizontal" as part of Chandrakala and called an upright one Suchi live.
+    Mudra identity doesn't depend on in-plane orientation (pose context
+    carries that signal separately), so full roll is safe. Tilt (pitch/yaw)
+    is kept moderate: it approximates palm-facing-camera vs. side-on views,
+    but MediaPipe's z is a noisier estimate than x/y, so large out-of-plane
+    rotations would mostly be teaching on fabricated geometry.
+    """
+    rng = rng or np.random.default_rng()
+    n = len(hand_features)
+    points = hand_features.reshape(n, HAND_LANDMARKS, COORDS)
+    roll = np.radians(rng.uniform(-max_roll_deg, max_roll_deg, n))
+    pitch = np.radians(rng.uniform(-max_tilt_deg, max_tilt_deg, n))
+    yaw = np.radians(rng.uniform(-max_tilt_deg, max_tilt_deg, n))
+
+    def rot(axis_a, axis_b, theta):
+        r = np.tile(np.eye(3), (n, 1, 1))
+        c, s = np.cos(theta), np.sin(theta)
+        r[:, axis_a, axis_a] = c
+        r[:, axis_a, axis_b] = -s
+        r[:, axis_b, axis_a] = s
+        r[:, axis_b, axis_b] = c
+        return r
+
+    r = rot(0, 1, roll) @ rot(1, 2, pitch) @ rot(0, 2, yaw)
+    rotated = points @ r.transpose(0, 2, 1)
+    return rotated.reshape(n, HAND_FEATURE_DIM).astype(hand_features.dtype)
+
+
 def build_asamyukta_dataset(
     cache_path: str = "data/landmarks.npz",
     val_size: float = 0.2,
