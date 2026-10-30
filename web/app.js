@@ -239,7 +239,16 @@ function stabilizeForDisplay(pred) {
 // thinking". Majority-voting over a short window absorbs that without
 // meaningfully delaying a genuine context change.
 const CONTEXT_SMOOTHING_WINDOW = 15; // ~0.5s at 30fps
+// The majority vote alone still flipped when two contexts sat near 50/50 —
+// observed live with "arm extended forward", which comes from pose z, the
+// noisiest coordinate MediaPipe produces — restarting the interpretation
+// every ~2s on a hand that never moved. So a new majority also has to hold
+// for CONTEXT_COMMIT_MS before it replaces the committed context.
+const CONTEXT_COMMIT_MS = 1500;
 let contextBuffer = [];
+let committedContext = undefined; // undefined = nothing committed yet
+let pendingContext = undefined;
+let pendingSince = 0;
 
 function smoothContext(rawContext) {
   contextBuffer.push(rawContext);
@@ -250,7 +259,22 @@ function smoothContext(rawContext) {
   for (const [c, n] of counts) {
     if (n > bestCount) { best = c; bestCount = n; }
   }
-  return best;
+  // Gaining context from none (hand or pose just (re)appeared) commits at
+  // once; only switching between two real contexts has to wait it out.
+  if (committedContext === undefined || committedContext === null || best === committedContext) {
+    committedContext = best;
+    pendingContext = undefined;
+    return committedContext;
+  }
+  const now = performance.now();
+  if (best !== pendingContext) {
+    pendingContext = best;
+    pendingSince = now;
+  } else if (now - pendingSince >= CONTEXT_COMMIT_MS) {
+    committedContext = best;
+    pendingContext = undefined;
+  }
+  return committedContext;
 }
 
 // --- Skeleton overlay ---
@@ -398,6 +422,7 @@ function clearActiveInterpretation() {
 async function maybeInterpret(mudras, context) {
   const key = `${mudras.join(",")}|${context || ""}`;
   if (key === lastInterpretedKey) return;
+  console.info(`[interpret] ${lastInterpretedKey ?? "(none)"} -> ${key}`);
   lastInterpretedKey = key;
   activeMudra = mudras[0];
 

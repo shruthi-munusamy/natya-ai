@@ -56,7 +56,7 @@ def horizontal_flip(hand_features: np.ndarray) -> np.ndarray:
 def random_rotate(
     hand_features: np.ndarray,
     max_roll_deg: float = 180.0,
-    max_tilt_deg: float = 35.0,
+    max_tilt_deg: float = 0.0,
     rng: np.random.Generator | None = None,
 ) -> np.ndarray:
     """Random 3D rotation about the wrist (the origin after normalization).
@@ -66,10 +66,13 @@ def random_rotate(
     from vertical in 80% of samples, so the model learned "index finger
     horizontal" as part of Chandrakala and called an upright one Suchi live.
     Mudra identity doesn't depend on in-plane orientation (pose context
-    carries that signal separately), so full roll is safe. Tilt (pitch/yaw)
-    is kept moderate: it approximates palm-facing-camera vs. side-on views,
-    but MediaPipe's z is a noisier estimate than x/y, so large out-of-plane
-    rotations would mostly be teaching on fabricated geometry.
+    carries that signal separately), so full roll is safe.
+
+    Tilt (pitch/yaw) defaults to off. Training with +/-35 deg tilt made live
+    Pataka read as Sarpasirsha: the two differ mainly by a slight cup and
+    the hand angled back, so tilting flat Pataka hands manufactured that
+    Sarpasirsha cue (held-out Pataka->Sarpasirsha 0% -> 5%; roll-only: 1%,
+    with the Chandrakala/Bramaram fixes intact).
     """
     rng = rng or np.random.default_rng()
     n = len(hand_features)
