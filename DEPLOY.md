@@ -49,17 +49,14 @@ The frontend is the static `web/` directory (no build step).
 
 ## 3. Wire the two together
 
-1. In `web/app.js`, update the `BACKEND_URL` constant (near the top of the
-   file) from `http://localhost:8001` to your Render URL:
-   ```js
-   const BACKEND_URL = "https://natya-api.onrender.com";
-   ```
+1. `web/app.js` picks the backend by hostname: `localhost` uses
+   `http://localhost:8001`, anything else uses `https://natya-api.onrender.com`.
+   If your Render URL differs, change that one string.
 2. On Render, set the `ALLOWED_ORIGINS` env var (already templated in
    `render.yaml` to `https://natya-ai.vercel.app`) to your actual Vercel
    URL if it differs, then redeploy. `src/llm/server.py` reads this to add
    to its CORS allowlist alongside localhost.
-3. Commit the `BACKEND_URL` change, push, redeploy the Vercel frontend
-   (auto-deploys on push if you connected the GitHub repo).
+3. Vercel redeploys on every push to `main` once the repo is connected.
 4. Open the Vercel URL, grant camera access, show a mudra, confirm the
    interpretation panel streams text from the deployed backend (check the
    Network tab for a request to your Render URL, not localhost).

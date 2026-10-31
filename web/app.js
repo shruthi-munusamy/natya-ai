@@ -13,9 +13,10 @@ import * as ort from
 ort.env.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.0/dist/";
 ort.env.wasm.numThreads = 1;
 
-// Single place to flip between local dev and the deployed backend — see
-// DEPLOY.md. Swap this one line after deploying the FastAPI server.
-const BACKEND_URL = "http://localhost:8001";
+// Local dev talks to the local FastAPI server; anywhere else (the Vercel
+// deploy) talks to the Render one — see DEPLOY.md.
+const IS_LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
+const BACKEND_URL = IS_LOCAL ? "http://localhost:8001" : "https://natya-api.onrender.com";
 
 const video = document.getElementById("video");
 const canvas = document.getElementById("overlay");
