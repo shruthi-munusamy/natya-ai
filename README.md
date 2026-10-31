@@ -514,7 +514,8 @@ for the training-side scripts, since they never import chromadb.
 - **Classifiers**: PyTorch (MLP + Transformer-encoder attention), exported
   to ONNX (opset 17), INT8 dynamic-quantized, served via onnxruntime-web
 - **Retrieval**: ChromaDB (persistent, cosine similarity) +
-  sentence-transformers `all-MiniLM-L6-v2`
+  `all-MiniLM-L6-v2` embeddings via ONNX Runtime (no torch, so the API
+  fits Render's 512MB free tier)
 - **LLM**: Groq-hosted Llama-class model, OpenAI-compatible streaming API
 - **Backend**: FastAPI + sse-starlette (SSE streaming), uvicorn
 - **Frontend**: vanilla JS (ES modules), no framework

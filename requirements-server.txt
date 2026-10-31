@@ -1,14 +1,10 @@
 # Minimal deps to run src/llm/server.py — used for the Render deploy.
 # The full requirements.txt also pulls in mediapipe, opencv, datasets, etc.
 # for the training pipeline, none of which the deployed API needs, so this
-# stays separate for that. NOTE: sentence-transformers pulls in torch and
-# transformers transitively even though nothing here imports them directly —
-# verified via a clean-venv install that the deploy is ~1.3GB, torch alone
-# accounting for ~560MB of it. That's not a training-pipeline dependency
-# sneaking back in, it's what sentence-transformers actually needs to run
-# the embedding model. Fine for Render's free tier (build succeeds, health
-# check passes), but it's the dominant cost in image size and cold-start
-# time, not mediapipe/opencv/torch's original training role.
+# stays separate for that. No sentence-transformers here on purpose: it pulls
+# in torch, and the torch-backed server ran out of memory on Render's 512MB
+# free tier. Embeddings come from Chroma's ONNX build of the same model
+# (src/kb/retrieval.py), which only needs onnxruntime.
 numpy<2
 fastapi>=0.110.0
 uvicorn>=0.27.0
@@ -16,4 +12,5 @@ sse-starlette>=2.0.0
 groq>=0.11.0
 python-dotenv>=1.0.0
 chromadb>=0.4.0
-sentence-transformers>=2.5.0
+onnxruntime>=1.17.0
+tokenizers>=0.15.0

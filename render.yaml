@@ -3,7 +3,11 @@ services:
     name: natya-api
     env: python
     plan: free
-    buildCommand: pip install -r requirements-server.txt
+    # Second step pre-downloads the ONNX embedding model into the project
+    # dir at build time, so the running service doesn't fetch it on startup.
+    buildCommand: >-
+      pip install -r requirements-server.txt &&
+      python -c "from src.kb.retrieval import MiniLMEmbedder; MiniLMEmbedder()(['warmup'])"
     startCommand: uvicorn src.llm.server:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:

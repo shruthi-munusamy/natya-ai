@@ -7,10 +7,12 @@ about 10 minutes.
 
 The backend is `src/llm/server.py` (FastAPI + SSE), configured by `render.yaml`
 and `requirements-server.txt` (skips mediapipe/opencv/datasets — the training
-pipeline's deps, not needed to serve the API. Torch still gets pulled in
-transitively via sentence-transformers, ~560MB of a ~1.3GB install — that's
-sentence-transformers' actual runtime need, not training-pipeline bloat
-sneaking back in. Verified in a clean venv; see requirements-server.txt).
+pipeline's deps, not needed to serve the API). No torch either: the first
+deploy used sentence-transformers, which pulled in torch and ran out of
+memory on the free tier's 512MB. Embeddings now come from Chroma's ONNX
+build of the same model (`src/kb/retrieval.py`, identical vectors): a
+~500MB install, and ~380MB peak for the running server in a clean-venv
+test, index rebuild included.
 
 1. Go to [render.com](https://render.com) and sign in / sign up (GitHub OAuth is easiest).
 2. **New > Blueprint**, connect the `shruthi-munusamy/natya-ai` repo. Render
@@ -20,8 +22,8 @@ sneaking back in. Verified in a clean venv; see requirements-server.txt).
    [console.groq.com/keys](https://console.groq.com/keys).
    - **Rotate this key first** if it's the same one that was ever in a
      committed file — see the note at the bottom of this doc.
-4. Deploy. First build takes a few minutes (installs sentence-transformers,
-   chromadb, etc.). The vector index rebuilds automatically on server
+4. Deploy. First build takes a few minutes (installs chromadb, onnxruntime,
+   etc., then downloads the ~80MB embedding model). The vector index rebuilds automatically on server
    startup from `data/kb/viniyoga.json` (see `build_index_if_empty` in
    `server.py`) — no manual step needed.
 5. Once live, note the URL, something like `https://natya-api.onrender.com`.

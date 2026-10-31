@@ -16,19 +16,54 @@ from pathlib import Path
 from typing import Optional
 
 import chromadb
-from sentence_transformers import SentenceTransformer
+import numpy as np
+from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2
 
 
-EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 COLLECTION_NAME = "viniyoga"
 DB_PATH = "data/kb/chroma"
+
+
+class MiniLMEmbedder(ONNXMiniLM_L6_V2):
+    """all-MiniLM-L6-v2 via Chroma's bundled ONNX export instead of
+    sentence-transformers. Same model, same vectors (cosine 1.000000 against
+    sentence-transformers on the same text), but no torch: the torch-backed
+    version blew past Render's 512MB free-tier memory limit at startup.
+
+    Model files live under the project (gitignored) rather than ~/.cache, so
+    the Render build step can download them once and the running service
+    finds them instead of re-downloading ~80MB on every cold start.
+    """
+    DOWNLOAD_PATH = Path(__file__).resolve().parents[2] / "data" / "kb" / "onnx_models" / "all-MiniLM-L6-v2"
+
+    # Chroma's own forward pass pads every text to 256 tokens and embeds 32
+    # at a time, which peaked near 700MB. Our texts are a sentence or two, so
+    # pad each small batch only to its longest text. Padding is masked out of
+    # both attention and mean pooling, so the vectors don't change; the
+    # session itself (~165MB) is the floor either way.
+    def _forward(self, documents, batch_size: int = 8):
+        out = []
+        for i in range(0, len(documents), batch_size):
+            encoded = self.tokenizer.encode_batch(documents[i:i + batch_size])
+            longest = max(len(e.ids) - e.attention_mask.count(0) for e in encoded)
+            ids = np.array([e.ids[:longest] for e in encoded], dtype=np.int64)
+            mask = np.array([e.attention_mask[:longest] for e in encoded], dtype=np.int64)
+            hidden = self.model.run(None, {
+                "input_ids": ids,
+                "attention_mask": mask,
+                "token_type_ids": np.zeros_like(ids),
+            })[0]
+            m = mask[:, :, None].astype(np.float32)
+            pooled = (hidden * m).sum(1) / np.clip(m.sum(1), 1e-9, None)
+            out.append(self._normalize(pooled).astype(np.float32))
+        return np.concatenate(out)
 
 
 class ViniyogaRetriever:
     def __init__(self, kb_path: str = "data/kb/viniyoga.json",
                  db_path: str = DB_PATH):
         self.kb_path = Path(kb_path)
-        self.embedder = SentenceTransformer(EMBED_MODEL)
+        self.embedder = MiniLMEmbedder()
         self.client = chromadb.PersistentClient(path=db_path)
         self.collection = self.client.get_or_create_collection(
             name=COLLECTION_NAME,
@@ -63,7 +98,7 @@ class ViniyogaRetriever:
                     "context": v["context"],
                 })
 
-        embeddings = self.embedder.encode(docs, show_progress_bar=False).tolist()
+        embeddings = [e.tolist() for e in self.embedder(docs)]
         self.collection.add(
             ids=ids,
             documents=docs,
@@ -88,7 +123,7 @@ class ViniyogaRetriever:
         if context:
             query = f"{query}. Context: {context}"
 
-        query_emb = self.embedder.encode([query]).tolist()
+        query_emb = [e.tolist() for e in self.embedder([query])]
         results = self.collection.query(
             query_embeddings=query_emb,
             n_results=k,
