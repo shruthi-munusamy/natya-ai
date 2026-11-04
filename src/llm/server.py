@@ -25,6 +25,7 @@ DEFAULT_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "https://natya-ai.vercel.app",
+    "https://natya-ai-fawn.vercel.app",
 ]
 extra_origins = os.getenv("ALLOWED_ORIGINS", "")
 allowed_origins = DEFAULT_ORIGINS + [o.strip() for o in extra_origins.split(",") if o.strip()]
