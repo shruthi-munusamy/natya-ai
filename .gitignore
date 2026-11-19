@@ -14,3 +14,7 @@ runs/
 checkpoints/
 .env
 data/kb/onnx_models/
+
+# local tooling
+.claude/
+CLAUDE.md
