@@ -487,6 +487,10 @@ cd web && python -m http.server 8000
 
 # 9. Run the interpretation backend (separate terminal)
 uvicorn src.llm.server:app --port 8001
+
+# 10. Run the tests (the LLM and MediaPipe are stubbed or not needed)
+pip install -r requirements-dev.txt
+pytest
 ```
 
 Then open `http://localhost:8000`, grant camera access, and show a mudra.
