@@ -5,11 +5,8 @@ document in the index. At inference time, given a detected mudra (or set of
 mudras + optional body pose context), we retrieve top-k most relevant entries
 to ground the LLM's interpretation.
 
-Why a vector store rather than a dict lookup: for v1 with single-mudra
-queries it's overkill. But the LLM downstream benefits from semantic ranking
-when we add sequence and pose context — 'Pataka with arm raised' should
-retrieve cloud/sky viniyogas first, not all six equally. Embedding-based
-retrieval makes that ranking principled.
+A vector store rather than a dict lookup so pose context can rank entries:
+'Pataka with arm raised' should put cloud/sky viniyogas first.
 """
 import json
 from pathlib import Path
@@ -25,14 +22,12 @@ DB_PATH = "data/kb/chroma"
 
 
 class MiniLMEmbedder(ONNXMiniLM_L6_V2):
-    """all-MiniLM-L6-v2 via Chroma's bundled ONNX export instead of
-    sentence-transformers. Same model, same vectors (cosine 1.000000 against
-    sentence-transformers on the same text), but no torch: the torch-backed
-    version blew past Render's 512MB free-tier memory limit at startup.
+    """all-MiniLM-L6-v2 via Chroma's ONNX export, so the API needs no torch
+    (which exceeded Render's 512MB free tier). Vectors match
+    sentence-transformers.
 
-    Model files live under the project (gitignored) rather than ~/.cache, so
-    the Render build step can download them once and the running service
-    finds them instead of re-downloading ~80MB on every cold start.
+    Model files live in the project (gitignored) so the Render build step
+    downloads them once instead of on every cold start.
     """
     DOWNLOAD_PATH = Path(__file__).resolve().parents[2] / "data" / "kb" / "onnx_models" / "all-MiniLM-L6-v2"
 
@@ -113,12 +108,8 @@ class ViniyogaRetriever:
         context: Optional[str] = None,
         k: int = 5,
     ) -> list[dict]:
-        """Retrieve top-k viniyoga entries for the given mudras + optional context.
-
-        mudras: list of detected mudra names (single hand or both)
-        context: free-text context — pose info, sequence history, etc.
-                 Used at inference time once the LLM layer is wired (C7).
-        """
+        """Top-k viniyoga entries for the given mudras, ranked against the
+        optional free-text context (e.g. pose)."""
         query = ", ".join(mudras)
         if context:
             query = f"{query}. Context: {context}"
@@ -142,12 +133,10 @@ class ViniyogaRetriever:
 
 
 def main():
-    """Build index from CLI."""
     r = ViniyogaRetriever()
     n = r.build_index()
     print(f"Indexed {n} viniyoga entries.")
 
-    # Sanity probe
     print("\nProbe: 'Pataka' alone")
     for hit in r.retrieve(["Pataka"], k=3):
         print(f"  - {hit['document']}  (dist={hit['distance']:.3f})")

@@ -1,24 +1,12 @@
 """MediaPipe Hands + Pose landmark extraction.
 
-Uses the Tasks-vision API (HandLandmarker, PoseLandmarker) — the same API
-family and the same model files the browser uses for live inference
-(web/app.js), not the legacy `mp.solutions` API this originally used.
+Uses the Tasks-vision API and the same model files as the browser
+(web/app.js), so training landmarks match the ones seen live. The legacy
+`mp.solutions` landmarks differ enough to cause train/serve skew; see
+"A train/serve skew bug, found and fixed" in the README.
 
-That switch matters: a diagnostic comparing both APIs on the same 222
-dataset images (both detected a hand) found the already-trained classifier
-scored 100% on legacy-API landmarks but only 88.3% on Tasks-API landmarks —
-every error one-directional (legacy right, Tasks wrong; never the reverse).
-Same 21-point format, but a different underlying landmark-detection model
-with meaningfully different coordinate precision. Training on legacy-API
-landmarks while the browser infers with Tasks-API landmarks is a train/serve
-skew bug, not generic webcam distribution shift — it meant the classifier
-was never actually trained on the kind of landmarks it sees live. Rebuilding
-the landmark cache with this extractor and retraining on it removes that
-specific bug (real webcam/lighting/hand distribution shift is separate and
-still expected to some degree).
-
-Returns a fixed-size feature vector per image so downstream models get
-consistent input shapes regardless of how many hands/pose were detected.
+Returns a fixed-size feature vector per image regardless of how many
+hands or poses were detected.
 """
 from dataclasses import dataclass
 from pathlib import Path
@@ -39,8 +27,7 @@ COORDS = 3  # x, y, z per landmark
 # presence flags: [left_hand_present, right_hand_present, pose_present]
 FEATURE_DIM = HAND_LANDMARKS * COORDS * 2 + POSE_LANDMARKS * COORDS + 3
 
-# Same model files web/app.js loads from this CDN at runtime — using the
-# identical asset is what makes this match live browser inference.
+# Same model files web/app.js loads at runtime.
 HAND_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
 POSE_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task"
 MODEL_CACHE_DIR = Path("data/mediapipe_models")
@@ -63,9 +50,8 @@ class LandmarkResult:
 
 
 class LandmarkExtractor:
-    """Wraps Tasks-vision HandLandmarker + PoseLandmarker into a single
-    extractor, run in IMAGE mode (these are static dataset photos, not
-    video). Use as a context manager or call .close() when done.
+    """HandLandmarker + PoseLandmarker in IMAGE mode. Use as a context
+    manager or call .close() when done.
     """
 
     def __init__(self, min_detection_confidence: float = 0.5):

@@ -1,10 +1,5 @@
-"""Export trained PyTorch classifiers to ONNX + verify numerical equivalence.
-
-ONNX is the cross-runtime intermediate format. PyTorch trains the model;
-ONNX is what we hand to onnxruntime-web in the browser. The verification
-step matters because subtle op-level differences between PyTorch and ONNX
-runtimes can drift outputs — we want to catch that here, not after
-deployment when behavior looks 'almost right'.
+"""Export trained classifiers to ONNX for onnxruntime-web, and check the
+ONNX outputs match PyTorch so runtime drift is caught before deployment.
 """
 import json
 from pathlib import Path
@@ -50,11 +45,8 @@ def export(checkpoint_path: str, out_path: str, feature_dim: int, arch_key: str)
         output_names=["logits"],
         dynamic_axes={"landmarks": {0: "batch"}, "logits": {0: "batch"}},
         opset_version=17,
-        # torch>=2.6 defaults this to True. The dynamo exporter's shape info
-        # isn't parseable by onnxruntime's quantizer (quantize_dynamic fails
-        # with a ShapeInferenceError on the resulting graph) — confirmed by
-        # hitting that exact failure after a torch upgrade silently flipped
-        # this default. Must stay False.
+        # torch>=2.6 defaults to the dynamo exporter, whose graphs make
+        # quantize_dynamic fail with a ShapeInferenceError. Must stay False.
         dynamo=False,
     )
 

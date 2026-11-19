@@ -4,9 +4,6 @@ Real-time Bharatanatyam mudra recognition, grounded in traditional viniyoga
 (meaning) interpretation via retrieval-augmented generation over a
 domain-expert-authored knowledge base.
 
-<!-- TODO: record a short demo GIF (mudra -> live classification -> streamed
-interpretation) and drop it here. -->
-
 **Live demo:** [natya-ai-fawn.vercel.app](https://natya-ai-fawn.vercel.app) — the API is on Render's free tier, so the first interpretation after a quiet spell can take ~30-60s while it wakes up.
 
 ## Problem

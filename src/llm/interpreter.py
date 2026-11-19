@@ -5,18 +5,12 @@ Given a detected mudra (or pair) and optional context, this:
 2. Constructs a structured prompt giving the LLM the canonical options
 3. Streams a grounded interpretation back
 
-Key design choices:
-- LLM is constrained to interpret from retrieved viniyogas only — no
-  free generation. This is the RAG part: the LLM does contextual selection
-  and natural-language synthesis, not knowledge invention.
-- System prompt explicitly tells the model to acknowledge uncertainty rather
-  than confabulate when context is ambiguous. Hallucination eval (C9) will
-  check this is actually happening.
+The model is told to interpret only from the retrieved viniyogas and to
+say so when several are equally plausible, rather than invent meanings.
+scripts/eval_llm.py measures how well it sticks to that.
 
-Provider: Groq's free inference API serving Llama 3.3 70B. OpenAI-compatible
-chat-completions API. Easy to swap to any other OpenAI-compatible provider
-(OpenAI, Together, Fireworks, etc.) by changing the client init and model
-name only.
+Provider: Groq's OpenAI-compatible chat-completions API. Swapping providers
+means changing the client init and LLM_MODEL.
 """
 import os
 from typing import AsyncIterator, Optional
@@ -28,10 +22,7 @@ from src.kb.retrieval import ViniyogaRetriever
 
 load_dotenv()
 
-# NOTE: llama-3.3-70b-versatile was retired from Groq's free tier after this
-# project's initial build. openai/gpt-oss-120b is the current closest
-# equivalent (large open-weight MoE model, free tier, OpenAI-compatible API).
-# Swappable by changing this constant only — see module docstring.
+# Replaced llama-3.3-70b-versatile after Groq retired it from the free tier.
 LLM_MODEL = "openai/gpt-oss-120b"
 
 SYSTEM_PROMPT = """You are a Bharatanatyam interpreter helping a dancer understand the viniyoga (traditional meanings) of detected mudras.
@@ -51,9 +42,7 @@ Your job:
 Tone: warm and informative, like a knowledgeable teacher. Avoid academic jargon.
 """
 
-# Used only by the no-RAG arm of the faithfulness eval (scripts/eval_llm.py)
-# to measure what the model does with no retrieved grounding at all — i.e.
-# to quantify the value RAG actually adds, not to ship in the app.
+# Baseline for scripts/eval_llm.py: the same task with no retrieved grounding.
 NO_RAG_SYSTEM_PROMPT = """You are a Bharatanatyam interpreter helping a dancer understand the viniyoga (traditional meaning) of detected mudras.
 
 You will receive one or more detected mudras and optional context about hand position or body posture. Using your own knowledge of Bharatanatyam and the Abhinaya Darpana, interpret what the dancer is most likely expressing.
@@ -111,9 +100,7 @@ What is the dancer most likely expressing?"""
         mudras: list[str],
         context: Optional[str] = None,
     ) -> AsyncIterator[str]:
-        """Same task, no retrieval — the model answers from parametric
-        knowledge alone. Exists only to measure the RAG grounding effect
-        in scripts/eval_llm.py; the app always uses interpret_stream."""
+        """Same task without retrieval. Used only by scripts/eval_llm.py."""
         ctx_line = f"\nContext: {context}" if context else ""
         mudras_line = ", ".join(mudras)
         user_msg = f"""Detected mudra(s): {mudras_line}{ctx_line}
@@ -139,7 +126,6 @@ What is the dancer most likely expressing?"""
 
 
 async def _demo():
-    """CLI demo: interpret a fixed example."""
     interp = ViniyogaInterpreter()
     print("Mudra: Pataka | Context: arm raised above head\n")
     async for chunk in interp.interpret_stream(

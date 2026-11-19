@@ -37,12 +37,9 @@ let samyuktaSession;
 let classes;
 let mudraDisplayNames = {};
 
-// The classifier's raw output labels are fixed to the Samarth0710 dataset's
-// spellings (renaming them would mean retraining), but the KB and LLM use
-// standard Sanskrit transliteration — see web/models/mudra_display_names.json.
-// Translating right where predictions are produced means every downstream
-// consumer (display, stability tracking, the LLM request, dedup keys) just
-// uses pred.name and never has to know the raw label existed.
+// Classifier labels use the Samarth0710 dataset's spellings; the KB and LLM
+// use standard Sanskrit transliteration (web/models/mudra_display_names.json).
+// Mapping at prediction time means everything downstream sees one name.
 function canonicalName(rawLabel) {
   return mudraDisplayNames[rawLabel] || rawLabel;
 }
@@ -50,7 +47,6 @@ function canonicalName(rawLabel) {
 // --- Landmark normalization (mirrors src/data/preprocess.py) ---
 
 function normalizeSingleHand(landmarks) {
-  // landmarks: 21 objects with x, y, z. Returns Float32Array(63).
   const out = new Float32Array(HAND_LANDMARKS * COORDS);
   const wx = landmarks[0].x, wy = landmarks[0].y, wz = landmarks[0].z;
   const mx = landmarks[MIDDLE_MCP].x - wx;
@@ -67,7 +63,7 @@ function normalizeSingleHand(landmarks) {
 }
 
 function normalizeTwoHands(left, right) {
-  // shared coordinate space: centroid of wrists, average wrist-to-MCP scale.
+  // Shared coordinate space: centroid of wrists, average wrist-to-MCP scale.
   const out = new Float32Array(2 * HAND_LANDMARKS * COORDS);
   const cx = (left[0].x + right[0].x) / 2;
   const cy = (left[0].y + right[0].y) / 2;
@@ -106,12 +102,9 @@ function softmax(logits) {
 }
 
 // --- Temporal smoothing ---
-// Average softmax distributions across a sliding window of recent frames.
-// At ~30fps, a 10-frame window is roughly 333ms of context. The display still
-// updates every frame; only the *decision* about which mudra to show is
-// averaged. Reset the buffer when hand mode changes (asamyukta and samyukta
-// have different label spaces) or when no hand is detected (avoid carrying
-// stale state across pauses).
+// Average softmax over the last ~333ms of frames. Reset when the hand mode
+// changes (the two classifiers have different label spaces) or no hand is
+// detected.
 const SMOOTHING_WINDOW = 10;
 let probBuffer = [];
 let bufferMode = null;
@@ -137,17 +130,10 @@ function resetBuffer() {
 }
 
 // --- Landmark smoothing ---
-// MediaPipe's per-frame landmark estimates jitter even for a motionless
-// hand/body — small noise in each (x,y,z) every frame. That jitter (a) makes
-// the skeleton overlay visibly tremble, (b) feeds noisy coordinates into
-// normalization/classification, and (c) made pose-derived context flip
-// between e.g. "near chest" and "near face" on a hand that never moved,
-// which was defeating the interpretation dedup (see smoothContext below).
-// An exponential moving average per landmark slot fixes all three at once.
-// Keyed by slot index, not hand identity — if hand count changes, or the
-// left/right ordering swaps between frames, this resets rather than trying
-// to track which physical hand is which; a swap mid-hold would show as one
-// glitched frame, not persistent jitter.
+// MediaPipe landmarks jitter even on a still hand, which shakes the overlay,
+// adds classifier noise and flips pose context. An EMA per landmark slot
+// smooths all three. Slots are by index, not hand identity: a change in hand
+// count resets the state.
 const LANDMARK_SMOOTHING_ALPHA = 0.4; // weight on the new frame; lower = smoother, more lag
 let smoothedHandsState = [];
 let smoothedPoseState = null;
@@ -186,16 +172,9 @@ function smoothPose(rawPoseList) {
 }
 
 // --- Display stabilization ---
-// smoothProbs already averages the classifier's softmax over 10 frames, but
-// the *displayed* label was still just argmax of that average, recomputed
-// every frame — near a decision boundary the argmax itself can still flip
-// rapidly even though the underlying distribution is smooth (observed: a
-// hand held at one specific angle flashed through ~10 different labels in
-// well under a second). Requiring a new label to win several consecutive
-// frames before it's shown kills that flicker. This also feeds a steadier
-// signal into the 1s interpretation-stability timer, which was being reset
-// by the same single-frame flickers and could lose the race against a user
-// just holding a mudra still.
+// Near a decision boundary the argmax of the smoothed distribution can still
+// flicker. A new label must win several consecutive frames before it's shown,
+// which also keeps the interpretation-stability timer from resetting.
 const DISPLAY_HYSTERESIS_FRAMES = 3; // ~100ms at 30fps — short enough to feel instant
 let confirmedPred = null;
 let candidateLabel = null;
@@ -230,21 +209,11 @@ function stabilizeForDisplay(pred) {
 }
 
 // --- Context stabilization ---
-// computePoseContext is recomputed from raw pose landmarks every frame;
-// even with landmark smoothing, a wrist sitting near a threshold boundary
-// (e.g. "near chest" vs "near face") can still flip occasionally. Since
-// the interpretation dedup key includes context, a flipping context was
-// causing repeated abort+restart cycles on a mudra the user never moved —
-// read as "it keeps refreshing" and, because each restart means the
-// previous stream never gets to show text, also as "it never finishes
-// thinking". Majority-voting over a short window absorbs that without
-// meaningfully delaying a genuine context change.
+// A wrist near a threshold can flip context ("near chest" / "near face"),
+// and since context is part of the interpretation key, each flip restarts
+// the request. Majority-vote over a short window, and require a new
+// majority to hold for CONTEXT_COMMIT_MS (pose z in particular is noisy).
 const CONTEXT_SMOOTHING_WINDOW = 15; // ~0.5s at 30fps
-// The majority vote alone still flipped when two contexts sat near 50/50 —
-// observed live with "arm extended forward", which comes from pose z, the
-// noisiest coordinate MediaPipe produces — restarting the interpretation
-// every ~2s on a hand that never moved. So a new majority also has to hold
-// for CONTEXT_COMMIT_MS before it replaces the committed context.
 const CONTEXT_COMMIT_MS = 1500;
 let contextBuffer = [];
 let committedContext = undefined; // undefined = nothing committed yet
@@ -415,11 +384,6 @@ function clearActiveInterpretation() {
   setInterpretationPlaceholder();
 }
 
-// Parses the SSE stream from /interpret/stream. sse-starlette writes
-// "event: <type>\r\ndata: <payload>\r\n\r\n" blocks; per the SSE spec, only
-// a single leading space after "data:" is a delimiter, so we strip exactly
-// one and preserve the rest (tokens frequently start with a meaningful
-// leading space, e.g. " the").
 async function maybeInterpret(mudras, context) {
   const key = `${mudras.join(",")}|${context || ""}`;
   if (key === lastInterpretedKey) return;
@@ -443,6 +407,9 @@ async function maybeInterpret(mudras, context) {
     });
     if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
 
+    // sse-starlette writes "event: <type>\r\ndata: <payload>\r\n\r\n" blocks.
+    // Per the SSE spec only one space after "data:" is a delimiter; tokens
+    // often start with a meaningful space (" the"), so keep the rest.
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buf = "";
@@ -468,11 +435,8 @@ async function maybeInterpret(mudras, context) {
             interpretEl.textContent = "";
             first = false;
           }
-          // The model formats emphasis as markdown (**bold**), but this
-          // panel renders plain text, not HTML — re-derive the display
-          // text from the full raw buffer each token rather than stripping
-          // per-chunk, since a "**" marker can land split across two
-          // separate stream chunks.
+          // Strip markdown from the full buffer, not per chunk: a "**"
+          // marker can be split across chunks.
           raw += data;
           interpretEl.textContent = stripMarkdown(raw);
         }
@@ -495,9 +459,7 @@ function updateInterpretationState(pred, context) {
     stableLabel = pred.name;
     stableSince = performance.now();
   }
-  // The displayed/streaming interpretation belongs to a mudra we're no
-  // longer predicting — clear it right away instead of leaving stale text
-  // up until the new mudra earns its own interpretation a second later.
+  // Clear an interpretation for a mudra we're no longer predicting.
   if (activeMudra !== null && activeMudra !== pred.name) {
     clearActiveInterpretation();
   }
@@ -523,7 +485,6 @@ async function predict(handsList) {
     const idx = probs.indexOf(Math.max(...probs));
     return { name: canonicalName(classes.asamyukta[idx]), conf: probs[idx], type: "asamyukta" };
   }
-  // two hands
   const x = normalizeTwoHands(handsList[0], handsList[1]);
   const t = new ort.Tensor("float32", x, [1, 2 * HAND_LANDMARKS * COORDS]);
   const r = await samyuktaSession.run({ landmarks: t });
@@ -557,9 +518,7 @@ async function loop() {
       confEl.textContent = "Show one or two hands";
     }
 
-    // Pose detection is best-effort context, not core to the demo — if it's
-    // ever unavailable or unreliable, computePoseContext returns null and
-    // interpretation still runs, just without body-position context.
+    // Pose is best-effort: without it, interpretation runs with no context.
     let context = null;
     if (poseLandmarker) {
       try {
@@ -589,10 +548,8 @@ async function main() {
     numHands: 2,
   });
 
-  // Pose is used only for coarse body-position context passed to the LLM
-  // (arm raised, hand near chest, etc.) — the "lite" model is enough for
-  // that and keeps load time down. If it fails to load, we degrade
-  // gracefully to context-free interpretation rather than blocking the demo.
+  // Pose only supplies coarse context for the LLM, so the lite model is
+  // enough. If it fails to load, carry on without context.
   try {
     poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
       baseOptions: {

@@ -1,4 +1,4 @@
-"""Preprocessing for asamyukta classifier training."""
+"""Landmark preprocessing and dataset builders for both classifiers."""
 import numpy as np
 from sklearn.model_selection import train_test_split
 
@@ -63,18 +63,13 @@ def random_rotate(
 ) -> np.ndarray:
     """Random 3D rotation about the wrist (the origin after normalization).
 
-    The dataset photographs hands almost entirely side-on and at fixed
-    tilts per class — e.g. Chandrakala's wrist->MCP axis sits at 48-79 deg
-    from vertical in 80% of samples, so the model learned "index finger
-    horizontal" as part of Chandrakala and called an upright one Suchi live.
-    Mudra identity doesn't depend on in-plane orientation (pose context
-    carries that signal separately), so full roll is safe.
+    The dataset shoots each class at a near-fixed orientation, so without
+    roll the model learns orientation as part of the mudra (e.g. an upright
+    Chandrakala read as Suchi). Mudra identity doesn't depend on in-plane
+    orientation, so full roll is safe.
 
-    Tilt (pitch/yaw) defaults to off. Training with +/-35 deg tilt made live
-    Pataka read as Sarpasirsha: the two differ mainly by a slight cup and
-    the hand angled back, so tilting flat Pataka hands manufactured that
-    Sarpasirsha cue (held-out Pataka->Sarpasirsha 0% -> 5%; roll-only: 1%,
-    with the Chandrakala/Bramaram fixes intact).
+    Tilt (pitch/yaw) defaults to off: tilting flat Pataka hands mimics the
+    angled-back hand of Sarpasirsha and made live Pataka read as Sarpasirsha.
     """
     rng = rng or np.random.default_rng()
     n = len(hand_features)

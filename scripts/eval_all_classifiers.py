@@ -1,8 +1,7 @@
-"""Combined eval for both deployed classifiers (asamyukta attention,
-samyukta MLP — the two checkpoints actually exported to ONNX and shipped
-to the browser). Outputs one JSON with per-class F1, top-1/top-3, macro/
-weighted averages, and confusion matrices, plus a confusion matrix PNG
-per model for the README.
+"""Combined eval for the two deployed classifiers (asamyukta and samyukta
+attention models, as exported to ONNX). Writes per-class F1, top-1/top-3,
+macro/weighted averages and confusion matrices to JSON, plus a confusion
+matrix PNG per model for the README.
 """
 import json
 import sys

@@ -1,21 +1,13 @@
 """Latency eval across the pipeline: classifier inference, LLM
 time-to-first-token, and end-to-end (frame -> first interpretation token).
 
-Caveats, stated up front because they matter for how to read eval/latency.json:
-- Classifier inference is measured via onnxruntime's Python/native CPU
-  execution provider, not the browser's onnxruntime-web WASM backend. This
-  is a proxy, not a measurement of the actual in-browser number — WASM is
-  typically slower than native CPU. True browser numbers require JS timing
-  (performance.now() around session.run(), logged to console) which the
-  app already positions to add trivially; that's a manual follow-up, not
-  scripted here since there's no headless browser in this environment.
-- End-to-end excludes the 1000ms stability debounce in app.js — that's a
-  deliberate fixed UX delay (see STABLE_MS in web/app.js), not pipeline
-  latency, and including it would make the system look artificially slow
-  without reflecting an actual bottleneck.
-- LLM latency depends on Groq's shared free-tier capacity and network
-  conditions at run time; treat these as one representative sample, not a
-  guaranteed SLA.
+Caveats for reading eval/latency.json:
+- Classifier inference runs on native onnxruntime CPU, a proxy for the
+  browser's WASM backend, which is typically slower.
+- End-to-end excludes the fixed 1000ms stability delay (STABLE_MS in
+  web/app.js), which is a UX choice rather than pipeline latency.
+- LLM latency depends on Groq free-tier load at run time; treat it as one
+  sample, not a guarantee.
 """
 import asyncio
 import json

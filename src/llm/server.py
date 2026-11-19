@@ -1,10 +1,7 @@
 """FastAPI server exposing the viniyoga interpreter over SSE.
 
-Why SSE instead of WebSockets: the client only needs a one-shot stream of
-text tokens per interpretation request, not bidirectional messaging. SSE is
-simpler to consume from the browser (native EventSource-style semantics via
-fetch + ReadableStream) and works over plain HTTP, which keeps the free-tier
-deploy story simple (no websocket upgrade handling needed on Render).
+SSE rather than WebSockets: each request is a one-way token stream, and SSE
+works over plain HTTP with no upgrade handling on Render.
 """
 import os
 from typing import Optional
@@ -18,9 +15,7 @@ from src.llm.interpreter import ViniyogaInterpreter
 
 app = FastAPI(title="Natya viniyoga interpreter")
 
-# Local dev origins plus the deployed Vercel origin. ALLOWED_ORIGINS can be
-# set as a comma-separated env var on Render so the deployed frontend URL
-# doesn't need a code change + redeploy to unblock CORS.
+# ALLOWED_ORIGINS (comma-separated) adds origins without a code change.
 DEFAULT_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
@@ -42,10 +37,8 @@ interpreter = ViniyogaInterpreter()
 
 @app.on_event("startup")
 def build_index_if_empty():
-    # The chroma index is a derived artifact (rebuilt from data/kb/viniyoga.json
-    # in a couple seconds), so it isn't committed to git. On a fresh deploy
-    # with no persistent disk (Render free tier), this guarantees retrieval
-    # works instead of silently returning zero results.
+    # The Chroma index isn't committed, and Render's free tier has no
+    # persistent disk, so rebuild it from the KB JSON on a fresh deploy.
     if interpreter.retriever.collection.count() == 0:
         n = interpreter.retriever.build_index()
         print(f"Built viniyoga index from scratch: {n} entries")
