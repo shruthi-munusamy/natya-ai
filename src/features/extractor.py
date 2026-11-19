@@ -68,8 +68,7 @@ class LandmarkExtractor:
     video). Use as a context manager or call .close() when done.
     """
 
-    def __init__(self, static_mode: bool = True, min_detection_confidence: float = 0.5):
-        del static_mode  # IMAGE running mode is always single-shot; kept for call-site compat
+    def __init__(self, min_detection_confidence: float = 0.5):
         self.hands = vision.HandLandmarker.create_from_options(
             vision.HandLandmarkerOptions(
                 base_options=BaseOptions(model_asset_path=_ensure_model(HAND_MODEL_URL)),

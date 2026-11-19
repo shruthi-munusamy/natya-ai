@@ -65,7 +65,7 @@ class AttentionClassifier(nn.Module):
         return self.head(pooled)
 
 
-TWO_HAND_FEATURE_DIM = 2 * HAND_LANDMARKS * COORDS  # 126
+TWO_HAND_FEATURE_DIM = 2 * HAND_FEATURE_DIM
 
 
 class TwoHandMLPClassifier(nn.Module):

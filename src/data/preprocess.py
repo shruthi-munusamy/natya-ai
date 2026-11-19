@@ -5,6 +5,8 @@ from sklearn.model_selection import train_test_split
 HAND_LANDMARKS = 21
 COORDS = 3
 HAND_FEATURE_DIM = HAND_LANDMARKS * COORDS  # 63
+TWO_HAND_FEATURE_DIM = 2 * HAND_FEATURE_DIM  # 126
+SAMYUKTA_MIN_PER_CLASS = 30
 
 
 def load_landmark_cache(path: str = "data/landmarks.npz"):
@@ -140,8 +142,6 @@ def build_asamyukta_dataset(
     }
 
 
-TWO_HAND_FEATURE_DIM = 2 * HAND_LANDMARKS * COORDS  # 126
-
 
 def filter_samyukta(gesture_types: np.ndarray, hand_present: np.ndarray):
     """Mask: double-hand samples with BOTH hands detected."""
@@ -193,8 +193,6 @@ def horizontal_flip_two_hands(two_hand_features: np.ndarray) -> np.ndarray:
     points = points[:, [1, 0], :, :]
     return points.reshape(n, TWO_HAND_FEATURE_DIM)
 
-
-SAMYUKTA_MIN_PER_CLASS = 30
 
 
 def build_samyukta_dataset(

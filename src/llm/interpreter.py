@@ -103,20 +103,8 @@ What is the dancer most likely expressing?"""
         """Yield text chunks as the LLM generates them."""
         retrieved = self.retriever.retrieve(mudras, context=context, k=k)
         user_msg = self.build_user_message(mudras, context, retrieved)
-
-        stream = await self.client.chat.completions.create(
-            model=LLM_MODEL,
-            max_tokens=300,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_msg},
-            ],
-            stream=True,
-        )
-        async for chunk in stream:
-            text = chunk.choices[0].delta.content
-            if text:
-                yield text
+        async for text in self._stream(SYSTEM_PROMPT, user_msg):
+            yield text
 
     async def interpret_stream_no_rag(
         self,
@@ -131,12 +119,15 @@ What is the dancer most likely expressing?"""
         user_msg = f"""Detected mudra(s): {mudras_line}{ctx_line}
 
 What is the dancer most likely expressing?"""
+        async for text in self._stream(NO_RAG_SYSTEM_PROMPT, user_msg):
+            yield text
 
+    async def _stream(self, system_prompt: str, user_msg: str) -> AsyncIterator[str]:
         stream = await self.client.chat.completions.create(
             model=LLM_MODEL,
             max_tokens=300,
             messages=[
-                {"role": "system", "content": NO_RAG_SYSTEM_PROMPT},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_msg},
             ],
             stream=True,

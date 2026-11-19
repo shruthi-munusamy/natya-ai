@@ -6,6 +6,7 @@ step matters because subtle op-level differences between PyTorch and ONNX
 runtimes can drift outputs — we want to catch that here, not after
 deployment when behavior looks 'almost right'.
 """
+import json
 from pathlib import Path
 
 import numpy as np
@@ -70,7 +71,7 @@ def export(checkpoint_path: str, out_path: str, feature_dim: int, arch_key: str)
     if max_diff > 1e-4:
         raise RuntimeError(f"ONNX output drift too large: {max_diff}")
     print(f"  classes: {len(class_names)}")
-    print(f"  ok\n")
+    print("  ok\n")
     return class_names
 
 
@@ -94,13 +95,12 @@ def main():
         "attention_two_hand",
     )
 
-    import json
     with open("web/models/classes.json", "w") as f:
         json.dump(
             {"asamyukta": asamyukta_classes, "samyukta": samyukta_classes},
             f, indent=2,
         )
-    print(f"Saved class names to web/models/classes.json")
+    print("Saved class names to web/models/classes.json")
 
 
 if __name__ == "__main__":

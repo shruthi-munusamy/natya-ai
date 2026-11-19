@@ -25,7 +25,7 @@ def main():
     hand_present = np.zeros((n, 2), dtype=bool)  # [left, right]
     pose_present = np.zeros(n, dtype=bool)
 
-    with LandmarkExtractor(static_mode=True) as extractor:
+    with LandmarkExtractor() as extractor:
         for i, sample in enumerate(tqdm(train, desc="Extracting landmarks")):
             result = extractor.extract(sample["image"])
             features[i] = result.features
