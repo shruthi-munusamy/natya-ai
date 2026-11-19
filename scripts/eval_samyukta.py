@@ -10,7 +10,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.data.preprocess import build_samyukta_dataset
-from src.models.classifier import TwoHandMLPClassifier, SamyuktaClassifier
+from src.models.classifier import TwoHandMLPClassifier, TwoHandAttentionClassifier
 
 
 def main():
@@ -22,7 +22,7 @@ def main():
     class_names = ckpt["class_names"]
     arch = ckpt["arch"]
 
-    model = (SamyuktaClassifier if arch == "attention" else TwoHandMLPClassifier)(
+    model = (TwoHandAttentionClassifier if arch == "attention" else TwoHandMLPClassifier)(
         n_classes=len(class_names)
     )
     model.load_state_dict(ckpt["state_dict"])

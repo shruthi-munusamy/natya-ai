@@ -17,7 +17,7 @@ import torch
 from src.models.classifier import (
     AttentionClassifier,
     MLPClassifier,
-    SamyuktaClassifier,
+    TwoHandAttentionClassifier,
     TwoHandMLPClassifier,
     HAND_FEATURE_DIM,
     TWO_HAND_FEATURE_DIM,
@@ -28,7 +28,7 @@ MODEL_REGISTRY = {
     "mlp": MLPClassifier,
     "attention": AttentionClassifier,
     "mlp_two_hand": TwoHandMLPClassifier,
-    "attention_two_hand": SamyuktaClassifier,
+    "attention_two_hand": TwoHandAttentionClassifier,
 }
 
 

@@ -87,7 +87,7 @@ class TwoHandMLPClassifier(nn.Module):
         return self.net(x)
 
 
-class SamyuktaClassifier(nn.Module):
+class TwoHandAttentionClassifier(nn.Module):
     """Attention over 42 keypoints (21 per hand x 2 hands).
 
     Each keypoint gets a positional embedding (shared across hands, since

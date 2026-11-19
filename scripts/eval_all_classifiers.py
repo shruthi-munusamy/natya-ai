@@ -16,7 +16,7 @@ from sklearn.metrics import classification_report, confusion_matrix, f1_score
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.data.preprocess import build_asamyukta_dataset, build_samyukta_dataset
-from src.models.classifier import AttentionClassifier, SamyuktaClassifier
+from src.models.classifier import AttentionClassifier, TwoHandAttentionClassifier
 
 OUT_DIR = Path("eval")
 OUT_DIR.mkdir(exist_ok=True)
@@ -96,7 +96,7 @@ def main():
         ),
         "samyukta": eval_model(
             "samyukta", "checkpoints/samyukta_attention.pt",
-            SamyuktaClassifier, build_samyukta_dataset, (10, 8),
+            TwoHandAttentionClassifier, build_samyukta_dataset, (10, 8),
         ),
     }
     out_path = OUT_DIR / "classifier_metrics.json"

@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, TensorDataset
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.data.preprocess import build_samyukta_dataset, horizontal_flip_two_hands
-from src.models.classifier import TwoHandMLPClassifier, SamyuktaClassifier
+from src.models.classifier import TwoHandMLPClassifier, TwoHandAttentionClassifier
 
 
 def train_one_model(model, data, epochs, batch_size, lr, device, flip_prob=0.5):
@@ -86,7 +86,7 @@ def main():
     print(f"MLP best val acc: {mlp_acc:.4f}\n")
 
     print("[2/2] Samyukta attention model")
-    attn = SamyuktaClassifier(n_classes=data["n_classes"])
+    attn = TwoHandAttentionClassifier(n_classes=data["n_classes"])
     attn_acc, attn_state = train_one_model(attn, data, args.epochs, args.batch_size, 1e-3, device)
     torch.save({"state_dict": attn_state, "class_names": data["class_names"], "arch": "attention"},
                "checkpoints/samyukta_attention.pt")
