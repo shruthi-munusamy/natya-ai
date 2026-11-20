@@ -113,7 +113,10 @@ What is the dancer most likely expressing?"""
     async def _stream(self, system_prompt: str, user_msg: str) -> AsyncIterator[str]:
         stream = await self.client.chat.completions.create(
             model=LLM_MODEL,
-            max_tokens=300,
+            # gpt-oss reasons before answering, and those tokens count
+            # against max_tokens; at 300 longer answers were cut off.
+            max_tokens=1024,
+            reasoning_effort="low",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_msg},

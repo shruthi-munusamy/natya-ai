@@ -43,7 +43,8 @@ def test_interpret_stream(interpreter):
     assert out == ["a", "b"]
     call = interpreter.completions.calls[0]
     assert call["model"] == interp_mod.LLM_MODEL
-    assert call["max_tokens"] == 300 and call["stream"] is True
+    assert call["max_tokens"] == 1024 and call["stream"] is True
+    assert call["reasoning_effort"] == "low"
     assert call["messages"][0] == {"role": "system", "content": interp_mod.SYSTEM_PROMPT}
     assert call["messages"][1]["content"] == (
         "Detected mudra(s): Pataka\nContext: arm raised\n\n"
@@ -60,7 +61,7 @@ def test_interpret_stream_no_rag(interpreter):
     assert call["messages"][1]["content"] == (
         "Detected mudra(s): Pataka\n\nWhat is the dancer most likely expressing?"
     )
-    assert call["max_tokens"] == 300 and call["stream"] is True
+    assert call["max_tokens"] == 1024 and call["stream"] is True
 
 
 def test_missing_key_raises(monkeypatch):
