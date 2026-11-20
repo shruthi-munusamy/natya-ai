@@ -1,5 +1,9 @@
 # Natya AI
 
+| One-hand mudras | Two-hand mudras |
+|---|---|
+| ![One-hand mudra demo](docs/demo-one-hand.gif) | ![Two-hand mudra demo](docs/demo-two-hand.gif) |
+
 Real-time Bharatanatyam mudra recognition in the browser, with an LLM that explains each mudra's traditional meaning (viniyoga) using only entries from an expert-verified knowledge base.
 
 **Live demo:** [natya-ai-fawn.vercel.app](https://natya-ai-fawn.vercel.app). The API runs on Render's free tier, so the first explanation after a quiet period can take 30–60 seconds while the server wakes up.
