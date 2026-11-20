@@ -363,9 +363,12 @@ let currentAbortController = null;
 let activeMudra = null; // mudra the panel currently reflects (loading or streamed text)
 
 // The interpretation panel is plain text, not markdown-rendered, so strip
-// the model's emphasis markers rather than showing literal asterisks.
+// the model's emphasis and list markers rather than showing them literally.
 function stripMarkdown(text) {
-  return text.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*\*/g, "");
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*\*/g, "")
+    .replace(/^[ \t]*(?:[•*-]|\d+[.)])[ \t]+/gm, "");
 }
 
 function setInterpretationPlaceholder() {
