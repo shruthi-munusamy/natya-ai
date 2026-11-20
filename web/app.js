@@ -291,6 +291,16 @@ const RAISED_MARGIN = 0.05;
 const FACE_BAND = 0.08;
 const CHEST_TOP_MARGIN = 0.03;
 const FORWARD_Z_MARGIN = 0.15;
+// Pose landmarks are extrapolated for body parts outside the frame, so only
+// trust ones that are on screen and, when MediaPipe reports it, visible.
+const MIN_POSE_VISIBILITY = 0.5;
+// The pose wrist must line up with the detected hand's wrist.
+const MAX_HAND_TO_POSE_WRIST = 0.15;
+
+function onScreen(lm) {
+  if (lm.x < 0 || lm.x > 1 || lm.y < 0 || lm.y > 1) return false;
+  return !(lm.visibility > 0 && lm.visibility < MIN_POSE_VISIBILITY);
+}
 
 function wristContext(poseLm, wristIdx, shoulderIdx, hipIdx) {
   const wrist = poseLm[wristIdx];
@@ -298,6 +308,7 @@ function wristContext(poseLm, wristIdx, shoulderIdx, hipIdx) {
   const hip = poseLm[hipIdx];
   const nose = poseLm[POSE.NOSE];
   const feats = [];
+  if (!onScreen(wrist) || !onScreen(shoulder) || !onScreen(nose)) return feats;
 
   if (wrist.y < nose.y - RAISED_MARGIN) {
     feats.push("arm raised above head");
@@ -327,6 +338,7 @@ function computePoseContext(poseLandmarksList, hands) {
     const dL = Math.hypot(poseLm[POSE.L_WRIST].x - hx, poseLm[POSE.L_WRIST].y - hy);
     const dR = Math.hypot(poseLm[POSE.R_WRIST].x - hx, poseLm[POSE.R_WRIST].y - hy);
     const useLeft = dL <= dR;
+    if (Math.min(dL, dR) > MAX_HAND_TO_POSE_WRIST) continue;
     for (const f of wristContext(
       poseLm,
       useLeft ? POSE.L_WRIST : POSE.R_WRIST,
