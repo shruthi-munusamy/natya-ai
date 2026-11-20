@@ -6,13 +6,13 @@
 
 Real-time Bharatanatyam mudra recognition in the browser, with an LLM that explains each mudra's traditional meaning (viniyoga) using only entries from an expert-verified knowledge base.
 
-**Live demo:** [natya-ai-fawn.vercel.app](https://natya-ai-fawn.vercel.app). The API runs on Render's free tier, so the first explanation after a quiet period can take 30–60 seconds while the server wakes up.
+**Live demo:** [natya-ai-fawn.vercel.app](https://natya-ai-fawn.vercel.app). The API runs on Render's free tier, so the first explanation after a period of inactivity can take 30–60 seconds while the server starts.
 
 ## Why this project
 
-In Bharatanatyam, a mudra (hand gesture) is a symbol, not just a shape. Each one has viniyogas, traditional meanings documented in texts like the *Abhinaya Darpana*, and the same mudra can mean different things depending on where it is held. Pataka raised above the head can represent a cloud, while at the chest it means something else.
+In Bharatanatyam, a mudra (hand gesture) is a symbol as well as a shape. Each mudra has viniyogas, which are traditional meanings documented in texts such as the *Abhinaya Darpana*. The same mudra can carry different meanings depending on where it is held. Pataka raised above the head can represent a cloud, while Pataka held at the chest carries a different meaning.
 
-Naming the mudra is a classification problem. Explaining what it means in context, without inventing meanings that are not canonical, is the harder part, and it is where a generic gesture classifier stops being useful to a dancer or student. Natya AI does both: it classifies mudras in real time on the user's device, then streams an explanation grounded in a knowledge base I verified against 14+ years of Bharatanatyam training.
+Identifying the mudra is a classification problem. Explaining its meaning in context, without introducing meanings that are not canonical, is the more difficult problem, and it is the point at which a generic gesture classifier is no longer sufficient for a dancer or student. Natya AI addresses both. It classifies mudras in real time on the user's device and then streams an explanation grounded in a knowledge base that I verified against 14+ years of Bharatanatyam training.
 
 ## Results
 
@@ -25,7 +25,7 @@ Naming the mudra is a classification problem. Explaining what it means in contex
 | LLM answers with a non-canonical meaning | 0% with RAG vs. 10% without |
 | Classifier inference (one-hand model) | 0.17 ms median |
 
-Validation data comes from the same studio-style dataset as training, so these numbers do not measure live webcam accuracy. See [Limitations](#limitations).
+The validation data comes from the same studio-style dataset as the training data, so these numbers do not measure live webcam accuracy. See [Limitations](#limitations).
 
 ## How it works
 
@@ -65,47 +65,47 @@ LLM (openai/gpt-oss-120b via Groq), restricted to the retrieved viniyogas
 Streamed explanation → browser
 ```
 
-Everything before the `POST` runs on the user's device, so classification needs no server round trip.
+Every stage before the `POST` runs on the user's device, so classification requires no server round trip.
 
-## What went wrong and how I fixed it
+## Issues and fixes
 
-### Validation looked great, but live predictions failed
+### Train/serve skew in landmark extraction
 
-Live webcam testing kept confusing mudras that are easy to tell apart, such as Tripataka and Mayura, while validation accuracy stayed above 97%. The cause was a mismatch between training and serving. I had extracted the dataset's landmarks with MediaPipe's legacy Python API, but the browser uses the newer Tasks API, which runs a different landmark model.
+Live webcam testing repeatedly confused mudras that are visually distinct, such as Tripataka and Mayura, while validation accuracy remained above 97%. The cause was a mismatch between training and serving. The dataset landmarks had been extracted with MediaPipe's legacy Python API, whereas the browser uses the newer Tasks API, which runs a different landmark model.
 
-To confirm it, I ran the same classifier on 222 dataset images using landmarks from each API. Legacy landmarks, the kind the model trained on, scored 100%. Tasks landmarks, the kind the browser actually sends, scored 88.3%, and every error went in that direction.
+To confirm the cause, I ran the same classifier on 222 dataset images using landmarks from each API. Legacy landmarks, which match the training data, scored 100%. Tasks landmarks, which match what the browser sends, scored 88.3%. Every error was an image that the legacy landmarks classified correctly and the Tasks landmarks did not.
 
-I switched the extraction script to the Tasks API, using the same model files the browser loads, re-extracted landmarks for all 28,431 images, and retrained both classifiers.
+The extraction script now uses the Tasks API with the same model files that the browser loads. Landmarks were re-extracted for all 28,431 images, and both classifiers were retrained.
 
-My first check of the retrained model also scored 100%, which was suspicious. It turned out 81% of those 222 images were in the training set, so the test mostly measured memorization. Redoing the check on 909 held-out images from the same problem classes gave 96.4%, with real remaining confusion around Katakamukha_1 and Tripataka.
+The first evaluation of the retrained model also scored 100%, which was inconsistent with the overall validation accuracy. On inspection, 81% of those 222 images were in the training set, so the test largely measured memorization. Repeating the evaluation on 909 held-out images from the same affected classes gave 96.4%, with residual confusion involving Katakamukha_1 and Tripataka.
 
-Validation accuracy dropped after this fix (97.70% → 96.20%). That drop is expected: the old number came from the same kind of landmarks the model trained on, which is exactly what hid the bug. The new number reflects what the browser sends.
+One-hand validation accuracy decreased after this fix (97.70% → 96.20%). This decrease is expected. The earlier figure was measured on the same type of landmarks used in training, which is the condition that concealed the defect. The new figure reflects the landmarks that the browser sends.
 
-### The model learned hand orientation as a shortcut
+### Orientation used as a shortcut feature
 
-After that fix, two mudras still failed live. Chandrakala read as Suchi, and Bramaram as Katakamukha_1, despite 97–99% validation recall. The dataset photographs hands almost entirely side-on at a fixed tilt per class (Chandrakala's wrist-to-middle-knuckle axis sits 48–79° from vertical in 80% of samples), and my normalization removed position and scale but not rotation. The classifier had learned tilt as a feature.
+After that fix, two mudras were still misclassified live. Chandrakala was classified as Suchi, and Bramaram as Katakamukha_1, despite 97–99% validation recall. The dataset photographs hands almost entirely side-on, at a fixed tilt for each class. In 80% of Chandrakala samples, the axis from the wrist to the middle knuckle lies 48–79° from vertical. The normalization step removed position and scale but not rotation, so the classifier learned tilt as a feature.
 
-Rotating validation hands upright reproduced the problem offline: 0% on upright Chandrakala and 21% overall under random rotation. Adding random in-plane rotation during training (`random_rotate` in `src/data/preprocess.py`) raised those to 98% and 94%, at a cost of about 1.7 points of standard validation accuracy (96.20% → 94.52%).
+Rotating validation hands to an upright orientation reproduced the problem offline, with 0% accuracy on upright Chandrakala and 21% overall under random rotation. Adding random in-plane rotation during training (`random_rotate` in `src/data/preprocess.py`) raised these figures to 98% and 94%, at a cost of about 1.7 points of standard validation accuracy (96.20% → 94.52%).
 
-I also tried ±35° out-of-plane tilt to simulate palm-facing views. That broke Pataka live, which started reading as Sarpasirsha, because the two differ mainly by a slight cup and backward angle that the tilt created artificially. Removing the tilt brought held-out Pataka→Sarpasirsha errors from 5% back to 1%. Pataka still occasionally reads as Sarpasirsha live, so this one is not fully solved.
+An additional ±35° out-of-plane tilt was tested to simulate palm-facing views. It caused live Pataka to be classified as Sarpasirsha. The two mudras differ mainly by a slight cup and a backward angle of the hand, and the tilt augmentation produced that cue artificially. Removing the tilt reduced held-out Pataka→Sarpasirsha errors from 5% to 1%. Pataka is still occasionally classified as Sarpasirsha live, so this issue is not fully resolved.
 
-### Flickering labels kept explanations from finishing
+### Prediction instability interrupting explanations
 
-Per-frame predictions flicker as a hand moves between shapes. Averaging softmax over 10 frames smoothed the decision but not the displayed label, and the pose context sent to the LLM ("near chest" vs. "near face") also flickered on a still hand. Each flicker changed the request, so the app kept canceling and restarting the LLM call before any text appeared. I fixed this with an EMA filter on raw landmark positions and hysteresis on both the displayed label and the context string. The landmark filter, softmax average, and label hysteresis all reset when the hand leaves the frame.
+Per-frame predictions fluctuate as a hand moves between shapes. Averaging the softmax output over 10 frames stabilized the decision but not the displayed label. The pose context sent to the LLM ("near chest" vs. "near face") also fluctuated while the hand was stationary. Each change altered the request, so the app repeatedly canceled and restarted the LLM call before any text appeared. The fix combines an EMA filter on raw landmark positions with hysteresis on both the displayed label and the context string. The landmark filter, the softmax average, and the label hysteresis all reset when the hand leaves the frame.
 
-### The LLM provider retired my model mid-project
+### Model deprecation by the LLM provider
 
-I built the interpreter against Groq's `llama-3.3-70b-versatile`, which Groq removed from its free tier during the project. Because the model name lives in one constant in `src/llm/interpreter.py`, switching to `openai/gpt-oss-120b` was a one-line change.
+The interpreter was originally built against Groq's `llama-3.3-70b-versatile`, which Groq removed from its free tier during the project. Because the model name is defined in a single constant in `src/llm/interpreter.py`, switching to `openai/gpt-oss-120b` required a one-line change.
 
 ## Design decisions
 
-**Two classifiers, split by hand count.** One-hand and two-hand mudras are geometrically different problems. Attention over the 21 keypoints helps the one-hand model separate shapes that differ only in relative finger geometry, like the Katakamukha variants. On two-hand mudras, attention and an MLP baseline originally tied. After retraining on the corrected landmarks, attention leads by about 1 point (99.69% vs. 98.77%), which suggests landmark noise, not just the small sample size, caused the original tie.
+**Two classifiers, split by hand count.** One-hand and two-hand mudras are geometrically different problems. Attention over the 21 keypoints helps the one-hand model separate shapes that differ only in relative finger geometry, such as the Katakamukha variants. On two-hand mudras, the attention model and an MLP baseline originally performed equally. After retraining on the corrected landmarks, the attention model leads by about 1 point (99.69% vs. 98.77%). This result suggests that landmark noise, and not only the small sample size, caused the original tie.
 
 **RAG instead of fine-tuning.** Viniyoga interpretation is selection from a curated set of meanings that grows over time, not a fixed label space. Retrieval makes every answer traceable to a specific knowledge base entry, and adding or correcting a meaning requires no retraining.
 
-**In-browser ONNX inference.** Classifying on the user's device means no per-request cost, no network delay, and no webcam video sent to a server. INT8 dynamic quantization shrinks both models (one-hand: 456 KB → 193 KB; two-hand: 1,404 KB → 473 KB) with negligible accuracy loss.
+**In-browser ONNX inference.** Classifying on the user's device avoids per-request cost and network delay, and no webcam video is sent to a server. INT8 dynamic quantization shrinks both models (one-hand: 456 KB → 193 KB; two-hand: 1,404 KB → 473 KB) with negligible accuracy loss.
 
-**An authored knowledge base.** Generic web sources are often wrong about viniyogas, and the no-RAG results show the LLM inventing meanings when it relies on its own knowledge. The entries were drafted with AI assistance from the *Abhinaya Darpana* and then verified against my 14+ years of Bharatanatyam training.
+**An authored knowledge base.** Generic web sources are often inaccurate about viniyogas, and the no-RAG results show the LLM producing non-canonical meanings when it relies on its own knowledge. The entries were drafted with AI assistance from the *Abhinaya Darpana* and then verified against my 14+ years of Bharatanatyam training.
 
 ## Detailed results
 
@@ -189,7 +189,7 @@ I ran 20 (mudra, context) test cases through the same model with and without ret
 | Claimed a non-canonical viniyoga | **0%** | 10% |
 | Top meaning matches the given context | **100%** | 20% |
 
-Grounded is 95% rather than 100% because one RAG case returned an empty response from a temporary Groq API error. Scoring uses a lexical-overlap heuristic, not semantic entailment, so the full transcripts in [`eval/llm_faithfulness.json`](eval/llm_faithfulness.json) are worth spot-checking by hand. Regenerate with `python scripts/eval_llm.py` (requires `GROQ_API_KEY`).
+The grounded rate is 95% rather than 100% because one RAG case returned an empty response due to a temporary Groq API error. Scoring uses a lexical-overlap heuristic rather than semantic entailment, so the full transcripts in [`eval/llm_faithfulness.json`](eval/llm_faithfulness.json) should be reviewed manually. Regenerate with `python scripts/eval_llm.py` (requires `GROQ_API_KEY`).
 
 ### Latency
 
@@ -200,16 +200,16 @@ Grounded is 95% rather than 100% because one RAG case returned an empty response
 | LLM time to first token (HTTP, Groq) | 679 ms | 1567 ms | 787 ms |
 | End to end² (classify → first token) | ~679 ms | ~1568 ms | ~787 ms |
 
-¹ Measured with onnxruntime's native CPU backend as a stand-in for the browser's WASM backend, which is slower. Either way, the LLM call dominates by more than three orders of magnitude.
-² Excludes the 1-second stability delay (`STABLE_MS` in `web/app.js`), which is a deliberate UX choice to avoid reacting to passing hand shapes. Regenerate with `python scripts/eval_latency.py` while the server is running.
+¹ Measured with onnxruntime's native CPU backend as a proxy for the browser's WASM backend, which is slower. In both cases, the LLM call exceeds classifier inference by more than three orders of magnitude.
+² Excludes the 1-second stability delay (`STABLE_MS` in `web/app.js`), which is a deliberate UX choice that prevents the app from reacting to transitional hand shapes. Regenerate with `python scripts/eval_latency.py` while the server is running.
 
 ## Limitations
 
-- **Static poses only.** The classifier sees one hand shape per frame. It cannot recognize two different mudras held on two hands at once (the two-hand model knows only 16 specific combined shapes), gestures traced through space, or mudras defined by motion, such as Sandamsha. Supporting those would need a sequence model and training data that does not exist yet.
-- **Partial bends are not recognized until fully formed.** The dataset contains only finished poses, so mudras that differ by degree of finger bend (Pataka → Tripataka, Pataka ↔ Ardhapataka) switch labels only when the hand matches the dataset's version of the target. The dataset's Tripataka uses a full ring-finger bend rather than the canonical half bend, so the model learned the dataset's convention.
-- **Closed set.** A mudra outside the 28 + 16 trained classes, such as Hamsapaksha, will always be reported as its nearest known class, since the model has no "none of the above" option.
-- **Two-hand detection.** MediaPipe detects both hands in only about 24% of the dataset's two-hand images, because hands overlap exactly when samyukta mudras happen. The two-hand model trains and evaluates on the roughly 3,254 samples that survive that filter.
-- **Live accuracy differs from validation.** Validation images come from the same studio-style collection as training. Live testing so far has been one person on one camera setup, and webcam lighting, background, and hand presentation still cause errors the fixes above do not address. Several confusions seen in early live testing predate the landmark fix and haven't been retested since.
+- **Static poses only.** The classifier processes one hand shape per frame. It cannot recognize two different mudras held on two hands at once, because the two-hand model covers only 16 specific combined shapes. It also cannot recognize gestures traced through space or mudras defined by motion, such as Sandamsha. Supporting these cases would require a sequence model and training data that does not yet exist.
+- **Partial bends are not recognized until fully formed.** The dataset contains only completed poses, so mudras that differ by degree of finger bend (Pataka → Tripataka, Pataka ↔ Ardhapataka) change labels only when the hand matches the dataset's version of the target. The dataset's Tripataka uses a full ring-finger bend rather than the canonical half bend, so the model learned the dataset's convention.
+- **Closed set.** A mudra outside the 28 + 16 trained classes, such as Hamsapaksha, is always reported as its nearest known class, because the model has no "none of the above" option.
+- **Two-hand detection.** MediaPipe detects both hands in only about 24% of the dataset's two-hand images, because samyukta mudras bring the hands close together and the hands occlude each other. The two-hand model is trained and evaluated on the roughly 3,254 samples that pass this filter.
+- **Live accuracy differs from validation.** Validation images come from the same studio-style collection as the training images. Live testing to date has involved one person on one camera setup. Webcam lighting, background, and hand presentation still cause errors that the fixes above do not address. Several confusions observed in early live testing predate the landmark fix and have not been retested.
 
 ## Setup and reproduction
 
@@ -254,9 +254,9 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-Then open `http://localhost:8000`, allow camera access, and show a mudra. For deploying to Render and Vercel, see [DEPLOY.md](./DEPLOY.md).
+Then open `http://localhost:8000`, allow camera access, and hold a mudra in view of the camera. For deploying to Render and Vercel, see [DEPLOY.md](./DEPLOY.md).
 
-**`protobuf`/`mediapipe` import error:** if `import mediapipe` raises `AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'`, the environment has picked up `protobuf>=5`. Mediapipe needs `protobuf<5,>=4.25.3`, while chromadb's `opentelemetry-proto` dependency wants `>=5`. Run `pip install "protobuf==4.25.3"`. Pip will warn about `opentelemetry-proto`, which is harmless for the training scripts because they never import chromadb.
+**`protobuf`/`mediapipe` import error:** if `import mediapipe` raises `AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'`, the environment contains `protobuf>=5`. Mediapipe requires `protobuf<5,>=4.25.3`, while chromadb's `opentelemetry-proto` dependency requires `>=5`. Run `pip install "protobuf==4.25.3"`. Pip then reports a conflict with `opentelemetry-proto`, which does not affect the training scripts because they do not import chromadb.
 
 ## Tech stack
 
